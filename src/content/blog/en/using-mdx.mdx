@@ -1,0 +1,23 @@
+---
+title: "Using MDX"
+description: "Learn how to use MDX with Astro."
+pubDate: "Jun 01 2024"
+heroImage: "/blog-placeholder-5.jpg"
+lang: "en"
+---
+
+This project includes the `@astrojs/mdx` integration, so articles can combine Markdown with Astro components.
+
+## Why MDX?
+
+MDX lets you embed components and interactive examples directly inside Markdown content while keeping the article easy to read and edit.
+
+## Example
+
+import HeaderLink from "../../../components/HeaderLink.astro";
+
+<HeaderLink href="#" onclick="alert('clicked!')">
+	Embedded component in MDX
+</HeaderLink>
+
+Read the [MDX documentation](https://mdxjs.com/docs/what-is-mdx) and the [Astro MDX guide](https://docs.astro.build/en/guides/integrations-guide/mdx/) for more details.

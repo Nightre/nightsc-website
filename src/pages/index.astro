@@ -8,7 +8,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 import { getCollection } from "astro:content";
 import * as m from "../paraglide/messages.js";
 
-const recentPosts = (await getCollection("blog"))
+const recentPosts = (await getCollection("blog", ({ data }) => data.lang === "en"))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 5);
 
@@ -55,11 +55,23 @@ const projects = [
 			<div class="home-grid">
 				<div class="home-column">
 					<section class="intro-card">
-						<h4 data-i18n="home.title">Hello, I’m NightScratch.</h4>
-						<p class="intro" data-i18n="home.intro">
-							A small corner for code, ideas, and things worth
-							remembering.
-						</p>
+						<div class="intro-avatar-wrap">
+							<img
+								class="intro-avatar"
+								src="https://avatars.githubusercontent.com/u/149653910?s=400&u=d200f991b7c1f38b1836a88cf25439d0740581e2&v=4"
+								alt="NightScratch"
+								width="400"
+								height="400"
+								decoding="async"
+							/>
+						</div>
+						<div class="intro-copy">
+							<h4 data-i18n="home.title">Hello, I’m NightScratch.</h4>
+							<p class="intro" data-i18n="home.intro">
+								A small corner for code, ideas, and things worth
+								remembering.
+							</p>
+						</div>
 					</section>
 					<section
 						class="recent-posts"
@@ -72,7 +84,7 @@ const projects = [
 							{
 								recentPosts.map((post) => (
 									<li>
-										<a href={`/blog/${post.id}/`}>
+										<a href={`/en/blog/${post.id.split('/').slice(1).join('/')}/`}>
 											{post.data.title}
 										</a>
 									</li>

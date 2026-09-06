@@ -69,6 +69,15 @@ const { postId } = Astro.props;
 <script>
 	const commentNameStorageKey = "COMMENT_AUTHOR_NAME";
 
+	function createDefaultCommentName() {
+		const randomBytes = new Uint8Array(2);
+		crypto.getRandomValues(randomBytes);
+		const suffix = Array.from(randomBytes, (value) =>
+			value.toString(16).padStart(2, "0"),
+		).join("").toUpperCase();
+		return `Guest-${suffix}`;
+	}
+
 	type CommentItem = {
 		id: string;
 		name: string;
@@ -189,9 +198,14 @@ const { postId } = Astro.props;
 				if (!form || !status || !button || !nameInput) return;
 
 				try {
-					nameInput.value = localStorage.getItem(commentNameStorageKey) ?? "";
+					let savedName = localStorage.getItem(commentNameStorageKey)?.trim();
+					if (!savedName) {
+						savedName = createDefaultCommentName();
+						localStorage.setItem(commentNameStorageKey, savedName);
+					}
+					nameInput.value = savedName;
 				} catch {
-					// Ignore browsers that block localStorage.
+					nameInput.value = createDefaultCommentName();
 				}
 				nameInput.addEventListener("input", () => {
 					try {
@@ -356,6 +370,9 @@ const { postId } = Astro.props;
 		gap: 0.75rem;
 		padding: 1.25rem 0;
 		border-top: 2px solid rgba(var(--gray), 0.22);
+	}
+	:global(.comment-item:first-child) {
+		border-top: 0;
 	}
 	:global(.comment-item header) {
 		display: flex;

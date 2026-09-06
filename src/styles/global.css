@@ -226,6 +226,29 @@ hr {
 	border-image-repeat: repeat;
 	image-rendering: pixelated;
 }
+.intro-card {
+	display: grid;
+	grid-template-columns: 10rem minmax(0, 1fr);
+	align-items: start;
+	gap: 1.25rem;
+}
+.intro-avatar-wrap {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 1;
+}
+.intro-avatar {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 8px;
+	object-fit: cover;
+}
+.intro-copy {
+	min-width: 0;
+}
 .eyebrow {
 	margin: 0 0 0.6rem;
 	color: var(--accent);

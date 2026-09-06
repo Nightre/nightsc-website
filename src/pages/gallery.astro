@@ -1,36 +1,74 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
 const galleryItems = [
-	{ image: '/hua/1.png', thumbnail: '/hua/thumbs/1.webp', alt: 'Artwork 1', caption: 'Artwork 01' },
-	{ image: '/hua/2.png', thumbnail: '/hua/thumbs/2.webp', alt: 'Artwork 2', caption: 'Artwork 02' },
-	{ image: '/hua/3.png', thumbnail: '/hua/thumbs/3.webp', alt: 'Artwork 3', caption: 'Artwork 03' },
-	{ image: '/hua/4.png', thumbnail: '/hua/thumbs/4.webp', alt: 'Artwork 4', caption: 'Artwork 04' },
+	{
+		image: "/hua/1.png",
+		thumbnail: "/hua/thumbs/1.webp",
+		alt: "Artwork 1",
+		caption: "Artwork 01",
+	},
+	{
+		image: "/hua/2.png",
+		thumbnail: "/hua/thumbs/2.webp",
+		alt: "Artwork 2",
+		caption: "Artwork 02",
+	},
+	{
+		image: "/hua/3.png",
+		thumbnail: "/hua/thumbs/3.webp",
+		alt: "Artwork 3",
+		caption: "Artwork 03",
+	},
+	{
+		image: "/hua/4.png",
+		thumbnail: "/hua/thumbs/4.webp",
+		alt: "Artwork 4",
+		caption: "Artwork 04",
+	},
 ];
 ---
 
 <!doctype html>
 <html lang="en" transition:animate="none">
-	<head><BaseHead title="Gallery | NightScratch" description={SITE_DESCRIPTION} /></head>
+	<head
+		><BaseHead
+			title="Gallery | NightScratch"
+			description={SITE_DESCRIPTION}
+		/></head
+	>
 	<body>
 		<Header />
 		<main class="gallery-page">
 			<header class="page-heading">
 				<h1 data-i18n="gallery.title">Gallery</h1>
-				<p data-i18n="gallery.intro">A collection of things I have drawn.</p>
+				<p data-i18n="gallery.intro">
+					A collection of things I have drawn.
+				</p>
 			</header>
 			<section class="gallery-grid" aria-label="Gallery">
-				{galleryItems.map((item) => (
-					<figure class="gallery-item">
-						<a class="gallery-link" href={item.image} aria-label={`Open full-size ${item.alt}`}>
-							<img src={item.thumbnail} alt={item.alt} loading="lazy" decoding="async" />
-						</a>
-						<figcaption>{item.caption}</figcaption>
-					</figure>
-				))}
+				{
+					galleryItems.map((item) => (
+						<figure class="gallery-item">
+							<a
+								class="gallery-link"
+								href={item.image}
+								aria-label={`Open full-size ${item.alt}`}
+							>
+								<img
+									src={item.thumbnail}
+									alt={item.alt}
+									loading="lazy"
+									decoding="async"
+								/>
+							</a>
+							<figcaption>{item.caption}</figcaption>
+						</figure>
+					))
+				}
 			</section>
 		</main>
 		<Footer />
@@ -38,10 +76,20 @@ const galleryItems = [
 </html>
 
 <style>
-	.gallery-page { width: 1120px; padding-block: 2rem 5rem; }
-	.page-heading { margin-bottom: 2rem; }
-	.page-heading p { margin: 0; color: rgb(var(--gray)); }
-	.gallery-grid { columns: 3 220px; column-gap: 1.25rem; }
+	.gallery-page {
+		width: 1120px;
+		padding-block: 2rem 5rem;
+	}
+	.page-heading {
+		margin-bottom: 2rem;
+	}
+	.page-heading p {
+		margin: 0;
+	}
+	.gallery-grid {
+		columns: 3 220px;
+		column-gap: 1.25rem;
+	}
 	.gallery-item {
 		break-inside: avoid;
 		margin: 0 0 1.25rem;
@@ -62,11 +110,32 @@ const galleryItems = [
 		transform: scale(1.04);
 		z-index: 1;
 	}
-	.gallery-link { display: block; cursor: zoom-in; }
-	.gallery-item img { display: block; width: 100%; height: auto; border-radius: 8px; }
-	.gallery-item figcaption { margin-top: 0.55rem; color: rgb(var(--gray)); font-size: 0.8rem; }
-	@media (prefers-reduced-motion: reduce) {
-		.gallery-item { transition: none; }
+	.gallery-link {
+		display: block;
+		cursor: zoom-in;
 	}
-	@media (max-width: 720px) { .gallery-page { padding-block: 1rem 3rem; } .gallery-grid { columns: 2 150px; } }
+	.gallery-item img {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 8px;
+	}
+	.gallery-item figcaption {
+		margin-top: 0.55rem;
+		color: rgb(var(--gray));
+		font-size: 0.8rem;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.gallery-item {
+			transition: none;
+		}
+	}
+	@media (max-width: 720px) {
+		.gallery-page {
+			padding-block: 1rem 3rem;
+		}
+		.gallery-grid {
+			columns: 2 150px;
+		}
+	}
 </style>

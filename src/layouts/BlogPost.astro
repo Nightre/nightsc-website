@@ -6,12 +6,12 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Comments from '../components/Comments.astro';
 
-type Props = CollectionEntry<'blog'>['data'] & { translationKey?: string; postId?: string };
+type Props = CollectionEntry<'blog'>['data'] & { translationKey?: string; postId?: string; lang?: string };
 
-const { title, description, pubDate, updatedDate, heroImage, translationKey, postId } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, translationKey, postId, lang = 'en' } = Astro.props;
 ---
 
-<html lang="en" transition:animate="none">
+<html lang={lang} transition:animate="none">
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>

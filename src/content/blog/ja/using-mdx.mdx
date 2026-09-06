@@ -1,0 +1,23 @@
+---
+title: "MDXを使う"
+description: "AstroでMDXを使う方法を紹介します。"
+pubDate: "Jun 01 2024"
+heroImage: "/blog-placeholder-5.jpg"
+lang: "ja"
+---
+
+このプロジェクトには `@astrojs/mdx` が導入されているため、記事の中でMarkdownとAstroコンポーネントを組み合わせられます。
+
+## なぜMDXなのか？
+
+MDXを使うと、読みやすく編集しやすいMarkdownを保ちながら、コンポーネントやインタラクティブな例を直接埋め込めます。
+
+## 例
+
+import HeaderLink from "../../../components/HeaderLink.astro";
+
+<HeaderLink href="#" onclick="alert('clicked!')">
+	MDXに埋め込まれたコンポーネント
+</HeaderLink>
+
+詳しくは [MDXドキュメント](https://mdxjs.com/docs/what-is-mdx) と [Astro MDXガイド](https://docs.astro.build/en/guides/integrations-guide/mdx/) を参照してください。

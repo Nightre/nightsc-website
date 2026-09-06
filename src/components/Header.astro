@@ -8,6 +8,8 @@ import blogIcon from '../styles/icons/blog.png';
 import galleryIcon from '../styles/icons/hualang.png';
 import contactIcon from '../styles/icons/lianxi.png';
 import rssIcon from '../styles/icons/rss.png';
+
+const currentLocale = Astro.url.pathname.match(/^\/(en|zh|ja)(?:\/|$)/)?.[1] ?? 'en';
 ---
 
 <header class="site-header">
@@ -19,7 +21,7 @@ import rssIcon from '../styles/icons/rss.png';
 				<img class="nav-icon" src={homeIcon.src} width="64" height="64" alt="" />
 				<span data-i18n="nav.home">Home</span>
 			</HeaderLink>
-			<HeaderLink href="/blog">
+			<HeaderLink href={`/${currentLocale}/blog`} data-localized-blog-link>
 				<img class="nav-icon" src={blogIcon.src} width="64" height="64" alt="" />
 				<span data-i18n="nav.blog">Blog</span>
 			</HeaderLink>

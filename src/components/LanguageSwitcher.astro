@@ -68,6 +68,12 @@ import langIcon from '../styles/icons/lang.png';
 
 	type Locale = 'en' | 'zh' | 'ja';
 	type MessageKey = keyof typeof messageByKey;
+	const supportedLocales: Locale[] = ['en', 'zh', 'ja'];
+
+	function getBlogRouteLocale(): Locale | undefined {
+		const locale = window.location.pathname.match(/^\/(en|zh|ja)\/blog(?:\/|$)/)?.[1];
+		return supportedLocales.includes(locale as Locale) ? locale as Locale : undefined;
+	}
 
 	function renderLanguage(locale: Locale) {
 		document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale;
@@ -94,12 +100,20 @@ import langIcon from '../styles/icons/lang.png';
 			const select = element as unknown as HTMLSelectElement;
 			select.value = locale;
 		});
+		document.querySelectorAll('[data-localized-blog-link]').forEach((element) => {
+			const link = element as unknown as HTMLAnchorElement;
+			link.href = `/${locale}/blog`;
+		});
 		delete document.documentElement.dataset.i18nPending;
 		document.dispatchEvent(new CustomEvent('site:language-change', { detail: { locale } }));
 	}
 
-	function initializeLanguageSwitcher() {
-		renderLanguage(getLocale() as Locale);
+	async function initializeLanguageSwitcher() {
+		const routeLocale = getBlogRouteLocale();
+		if (routeLocale && routeLocale !== getLocale()) {
+			await setLocale(routeLocale, { reload: false });
+		}
+		renderLanguage(routeLocale ?? getLocale() as Locale);
 		document.querySelectorAll('[data-language-select]').forEach((element) => {
 			const select = element as unknown as HTMLSelectElement;
 			if (select.dataset.languageReady === 'true') return;
@@ -107,13 +121,18 @@ import langIcon from '../styles/icons/lang.png';
 			select.addEventListener('change', async () => {
 				const locale = select.value as Locale;
 				await setLocale(locale, { reload: false });
+				const localizedBlogPath = window.location.pathname.match(/^\/(en|zh|ja)(\/blog(?:\/.*)?)\/?$/);
+				if (localizedBlogPath) {
+					window.location.assign(`/${locale}${localizedBlogPath[2]}`);
+					return;
+				}
 				renderLanguage(locale);
 			});
 		});
 	}
 
-	initializeLanguageSwitcher();
-	document.addEventListener('astro:page-load', initializeLanguageSwitcher);
+	void initializeLanguageSwitcher();
+	document.addEventListener('astro:page-load', () => void initializeLanguageSwitcher());
 	document.addEventListener('site:refresh-language', () => renderLanguage(getLocale() as Locale));
 </script>
 
@@ -135,7 +154,7 @@ import langIcon from '../styles/icons/lang.png';
 		image-rendering: pixelated;
 	}
 	select {
-		width: 5.4rem;
+		width: 6.5rem;
 		min-height: 3rem;
 		box-sizing: border-box;
 		padding: 0 1.25rem 0 0.25rem;
@@ -156,6 +175,6 @@ import langIcon from '../styles/icons/lang.png';
 	}
 	@media (max-width: 720px) {
 		.language-picker span { display: none; }
-		select { width: 4.9rem; }
+		select { width: 6rem; }
 	}
 </style>
