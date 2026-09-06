@@ -66,7 +66,7 @@ const { postId } = Astro.props;
 	</div>
 </section>
 
-<script lang="ts">
+<script>
 	type CommentItem = {
 		id: string;
 		name: string;
@@ -199,9 +199,9 @@ const { postId } = Astro.props;
 							headers: { "Content-Type": "application/json" },
 							body: JSON.stringify({
 								postId: root.dataset.postId,
-								name: data.get("name")?.toString() ?? "",
-								content: data.get("content")?.toString() ?? "",
-								website: data.get("website")?.toString() ?? "",
+								name: data.get("name"),
+								content: data.get("content"),
+								website: data.get("website"),
 							}),
 						});
 						if (!response.ok)

@@ -18,7 +18,7 @@
 			"binding": "COMMENTS_DB",
 			"database_name": "nightsc-comments",
 			"database_id": "898f73ed-15c8-44ef-b65c-3afa026bbebc",
-			"remote": false
+			"remote": true
 		}
 	]
 }
