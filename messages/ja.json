@@ -39,6 +39,7 @@
 	"comments_empty": "まだコメントはありません。最初のコメントを投稿しましょう。",
 	"comments_success": "コメントを投稿しました。",
 	"comments_error": "現在コメントを利用できません。後でもう一度お試しください。",
+	"comments_rate_limited": "少し待ってから、もう一度コメントしてください。",
 	"gallery_title": "ギャラリー",
 	"gallery_intro": "自分で描いた作品のコレクションです。",
 	"contact_title": "連絡先",

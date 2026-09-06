@@ -39,6 +39,7 @@
 	"comments_empty": "还没有评论，来发表第一条吧。",
 	"comments_success": "评论已发布。",
 	"comments_error": "评论暂时不可用，请稍后再试。",
+	"comments_rate_limited": "请稍等一会儿再发表评论。",
 	"gallery_title": "画廊",
 	"gallery_intro": "这里收藏我画过的作品。",
 	"contact_title": "联系我",

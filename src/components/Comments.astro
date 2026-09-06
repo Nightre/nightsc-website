@@ -67,6 +67,8 @@ const { postId } = Astro.props;
 </section>
 
 <script>
+	const commentNameStorageKey = "COMMENT_AUTHOR_NAME";
+
 	type CommentItem = {
 		id: string;
 		name: string;
@@ -183,11 +185,30 @@ const { postId } = Astro.props;
 				const button = form?.querySelector<HTMLButtonElement>(
 					'button[type="submit"]',
 				);
-				if (!form || !status || !button) return;
+				const nameInput = form?.querySelector<HTMLInputElement>('input[name="name"]');
+				if (!form || !status || !button || !nameInput) return;
+
+				try {
+					nameInput.value = localStorage.getItem(commentNameStorageKey) ?? "";
+				} catch {
+					// Ignore browsers that block localStorage.
+				}
+				nameInput.addEventListener("input", () => {
+					try {
+						localStorage.setItem(commentNameStorageKey, nameInput.value);
+					} catch {
+						// Ignore browsers that block localStorage.
+					}
+				});
 
 				form.addEventListener("submit", async (event) => {
 					event.preventDefault();
 					if (!form.reportValidity()) return;
+					try {
+						localStorage.setItem(commentNameStorageKey, nameInput.value.trim());
+					} catch {
+						// Ignore browsers that block localStorage.
+					}
 					button.disabled = true;
 					button.dataset.i18n = "comments.submitting";
 					status.textContent = "";
@@ -205,7 +226,17 @@ const { postId } = Astro.props;
 							}),
 						});
 						if (!response.ok)
+						{
+							const result = (await response.json().catch(() => null)) as {
+								code?: string;
+							} | null;
+							if (response.status === 429 || result?.code === "rate_limited") {
+								status.dataset.i18n = "comments.rateLimited";
+								requestTranslationRefresh();
+								return;
+							}
 							throw new Error("Could not post comment");
+						}
 						form.reset();
 						status.dataset.i18n = "comments.success";
 						await loadComments(root);

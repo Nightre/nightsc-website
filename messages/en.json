@@ -39,6 +39,7 @@
 	"comments_empty": "No comments yet. Be the first to comment.",
 	"comments_success": "Your comment was posted.",
 	"comments_error": "Comments are unavailable right now. Please try again.",
+	"comments_rate_limited": "Please wait before posting another comment.",
 	"gallery_title": "Gallery",
 	"gallery_intro": "A collection of things I have drawn.",
 	"contact_title": "Contact me",

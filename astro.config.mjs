@@ -9,6 +9,9 @@ import { paraglideVitePlugin } from "@inlang/paraglide-js";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://example.com",
+	devToolbar: {
+		enabled: false,
+	},
 	integrations: [mdx(), sitemap()],
 	vite: {
 		plugins: [

@@ -5,6 +5,8 @@ export const prerender = false;
 const POST_ID_PATTERN = /^[a-z0-9][a-z0-9/_-]{0,199}$/i;
 const MAX_NAME_LENGTH = 40;
 const MAX_CONTENT_LENGTH = 2000;
+const COMMENT_RATE_LIMIT_WINDOW_SECONDS = 3 * 60;
+const COMMENT_RATE_LIMIT_COUNT = 2;
 
 type RuntimeEnv = {
 	COMMENTS_DB?: D1Database;
@@ -18,6 +20,11 @@ type CommentRow = {
 	created_at: string;
 };
 
+type RateLimitRow = {
+	window_started_at: number;
+	comment_count: number;
+};
+
 function getDatabase(locals: App.Locals) {
 	return (locals as unknown as { runtime?: { env?: RuntimeEnv } }).runtime?.env?.COMMENTS_DB;
 }
@@ -29,6 +36,14 @@ function toPublicComment(row: CommentRow) {
 		content: row.content,
 		createdAt: row.created_at,
 	};
+}
+
+function getClientKey(request: Request) {
+	const ip =
+		request.headers.get("CF-Connecting-IP") ??
+		request.headers.get("x-forwarded-for")?.split(",", 1)[0]?.trim() ??
+		"unknown";
+	return `ip:${ip}`;
 }
 
 export const GET: APIRoute = async ({ url, locals }) => {
@@ -107,15 +122,84 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 		content,
 		createdAt: new Date().toISOString(),
 	};
+	const now = Math.floor(Date.now() / 1000);
+	const clientKey = getClientKey(request);
+	const rateLimit = await database
+		.prepare(
+			`SELECT window_started_at, comment_count
+			 FROM comment_rate_limits
+			 WHERE client_key = ?`,
+		)
+		.bind(clientKey)
+		.first<RateLimitRow>();
+	const windowIsActive =
+		rateLimit && now - rateLimit.window_started_at < COMMENT_RATE_LIMIT_WINDOW_SECONDS;
+	if (
+		windowIsActive &&
+		rateLimit.comment_count >= COMMENT_RATE_LIMIT_COUNT
+	) {
+		const retryAfter = Math.max(
+			1,
+			COMMENT_RATE_LIMIT_WINDOW_SECONDS - (now - rateLimit.window_started_at),
+		);
+		return Response.json(
+			{ code: "rate_limited", retryAfter },
+			{ status: 429, headers: { "Retry-After": String(retryAfter) } },
+		);
+	}
 
 	try {
-		await database
-			.prepare(
-				`INSERT INTO comments (id, post_id, author_name, content, created_at)
-				 VALUES (?, ?, ?, ?, ?)`,
-			)
-			.bind(comment.id, postId, comment.name, comment.content, comment.createdAt)
-			.run();
+		const [commentResult] = await database.batch([
+			database
+				.prepare(
+					`INSERT INTO comments (id, post_id, author_name, content, created_at)
+					 SELECT ?, ?, ?, ?, ?
+					 WHERE NOT EXISTS (
+						 SELECT 1 FROM comment_rate_limits
+						 WHERE client_key = ?
+						 AND window_started_at > ?
+						 AND comment_count >= ?
+					 )`,
+				)
+				.bind(
+					comment.id,
+					postId,
+					comment.name,
+					comment.content,
+					comment.createdAt,
+					clientKey,
+					now - COMMENT_RATE_LIMIT_WINDOW_SECONDS,
+					COMMENT_RATE_LIMIT_COUNT,
+				),
+			database
+				.prepare(
+					`INSERT INTO comment_rate_limits (client_key, window_started_at, comment_count)
+					 SELECT ?, ?, 1
+					 WHERE EXISTS (SELECT 1 FROM comments WHERE id = ?)
+					 ON CONFLICT(client_key) DO UPDATE SET
+						window_started_at = CASE
+							WHEN comment_rate_limits.window_started_at <= ? THEN excluded.window_started_at
+							ELSE comment_rate_limits.window_started_at
+						END,
+						comment_count = CASE
+							WHEN comment_rate_limits.window_started_at <= ? THEN 1
+							ELSE comment_rate_limits.comment_count + 1
+						END`,
+				)
+				.bind(
+					clientKey,
+					now,
+					comment.id,
+					now - COMMENT_RATE_LIMIT_WINDOW_SECONDS,
+					now - COMMENT_RATE_LIMIT_WINDOW_SECONDS,
+				),
+		]);
+		if (commentResult.meta.changes === 0) {
+			return Response.json(
+				{ code: "rate_limited" },
+				{ status: 429, headers: { "Retry-After": String(COMMENT_RATE_LIMIT_WINDOW_SECONDS) } },
+			);
+		}
 		return Response.json({ code: "success", comment }, { status: 201 });
 	} catch (error) {
 		console.error("Could not create comment", error);
