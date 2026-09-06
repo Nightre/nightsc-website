@@ -1,0 +1,197 @@
+---
+import emailIcon from '../styles/icons/email.png';
+---
+
+<section class="newsletter" aria-labelledby="newsletter-title">
+	<div class="newsletter-copy">
+		<div class="newsletter-eyebrow-row">
+			<img class="newsletter-icon" src={emailIcon.src} width="64" height="64" alt="" />
+			<p class="newsletter-eyebrow" data-i18n="newsletter.eyebrow">Email newsletter</p>
+		</div>
+		<h2 id="newsletter-title" data-i18n="newsletter.title">New posts, sent quietly.</h2>
+		<p data-i18n="newsletter.body">
+			Get an email when something new is published. No noise, unsubscribe anytime.
+		</p>
+	</div>
+
+	<form class="newsletter-form" data-newsletter-form>
+		<label class="sr-only" for="newsletter-email">Email address</label>
+		<div class="form-row">
+			<input
+				id="newsletter-email"
+				name="email"
+				type="email"
+				autocomplete="email"
+				inputmode="email"
+				placeholder="you@example.com"
+				data-i18n-placeholder="newsletter.placeholder"
+				required
+			/>
+			<button type="submit" data-i18n="newsletter.button">Subscribe</button>
+		</div>
+		<label class="website-field" aria-hidden="true">
+			Website
+			<input name="website" type="text" tabindex="-1" autocomplete="off" />
+		</label>
+		<p class="form-status" data-newsletter-status role="status" aria-live="polite"></p>
+	</form>
+</section>
+
+<script>
+	const form = document.querySelector('[data-newsletter-form]') as unknown as HTMLFormElement | null;
+
+	form?.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		const emailInput = form.elements.namedItem('email') as HTMLInputElement;
+		const websiteInput = form.elements.namedItem('website') as HTMLInputElement;
+		const button = form.querySelector('button[type="submit"]') as unknown as HTMLButtonElement | null;
+		const status = form.querySelector('[data-newsletter-status]') as unknown as HTMLElement | null;
+		if (!button || !status) return;
+
+		if (!emailInput.validity.valid) {
+			status.dataset.i18n = 'newsletter.invalid';
+			document.dispatchEvent(new CustomEvent('site:refresh-language'));
+			emailInput.focus();
+			return;
+		}
+
+		button.disabled = true;
+		button.dataset.i18n = 'newsletter.sending';
+		status.textContent = '';
+		document.dispatchEvent(new CustomEvent('site:refresh-language'));
+
+		try {
+			const response = await fetch('/api/subscribe', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: emailInput.value, website: websiteInput.value }),
+			});
+			const result = await response.json() as { code?: string };
+			const allowedCodes = ['success', 'exists', 'invalid'] as const;
+			const code = allowedCodes.includes(result.code as (typeof allowedCodes)[number])
+				? result.code
+				: 'error';
+			status.dataset.i18n = `newsletter.${code}`;
+			if (response.ok) form.reset();
+		} catch {
+			status.dataset.i18n = 'newsletter.error';
+		} finally {
+			button.disabled = false;
+			button.dataset.i18n = 'newsletter.button';
+			document.dispatchEvent(new CustomEvent('site:refresh-language'));
+		}
+	});
+</script>
+
+<style>
+	.newsletter {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.9fr);
+		gap: 3rem;
+		align-items: center;
+		margin-top: 1.5rem;
+		padding: 2.25rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-card);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+	}
+	.newsletter-eyebrow {
+		margin: 0;
+		color: var(--accent);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+	.newsletter-eyebrow-row {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.newsletter-icon {
+		width: 1.5rem;
+		height: 1.5rem;
+		flex: none;
+		border-radius: 0;
+		image-rendering: crisp-edges;
+		image-rendering: pixelated;
+	}
+	h2 {
+		margin-bottom: 0.65rem;
+		font-size: clamp(1.7rem, 4vw, 2.35rem);
+	}
+	.newsletter-copy > p:last-child {
+		margin: 0;
+		color: rgb(var(--gray));
+		font-size: 1rem;
+		line-height: 1.55;
+	}
+	.form-row {
+		display: flex;
+		gap: 0.6rem;
+	}
+	input[type='email'] {
+		min-width: 0;
+		width: 100%;
+		height: 3.5rem;
+		box-sizing: border-box;
+		padding: 0 0.75rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-input);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+		background: transparent;
+		color: rgb(var(--black));
+		font: inherit;
+	}
+	input[type='email']:focus {
+		outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
+		outline-offset: 2px;
+	}
+	button {
+		height: 3.5rem;
+		padding: 0 0.9rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-button-primary);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+		background: transparent;
+		color: rgb(var(--black));
+		font: inherit;
+		font-weight: 700;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+	button:hover { filter: brightness(1.06) saturate(1.08); }
+	button:disabled { opacity: 0.65; cursor: wait; }
+	.form-status {
+		min-height: 1.5rem;
+		margin: 0.55rem 0 0;
+		font-size: 0.85rem;
+		line-height: 1.4;
+	}
+	.website-field {
+		position: absolute;
+		left: -10000px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
+	@media (max-width: 760px) {
+		.newsletter {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+			padding: 1.4rem;
+		}
+		.form-row { flex-direction: column; }
+		button { width: 100%; }
+	}
+</style>

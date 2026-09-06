@@ -19,6 +19,13 @@ const posts = (await getCollection('blog')).sort(
 			main {
 				width: 960px;
 			}
+			.page-heading {
+				margin-bottom: 2.5rem;
+			}
+			.page-heading p {
+				margin: 0;
+				color: rgb(var(--gray));
+			}
 			ul {
 				display: flex;
 				flex-wrap: wrap;
@@ -33,6 +40,16 @@ const posts = (await getCollection('blog')).sort(
 			ul li * {
 				text-decoration: none;
 				transition: 0.2s ease;
+			}
+			ul li > a {
+				box-sizing: border-box;
+				padding: 0.75rem;
+				border: 8px solid transparent;
+				border-image-source: var(--frame-card);
+				border-image-slice: 16 fill;
+				border-image-width: 16px;
+				border-image-repeat: repeat;
+				image-rendering: pixelated;
 			}
 			ul li:first-child {
 				width: 100%;
@@ -88,6 +105,10 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
+			<header class="page-heading">
+				<h1 data-i18n="blog.title">Writing</h1>
+				<p data-i18n="blog.intro">Notes, experiments, and occasional longer pieces.</p>
+			</header>
 			<section>
 				<ul>
 					{

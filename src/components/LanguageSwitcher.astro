@@ -1,0 +1,136 @@
+---
+import langIcon from '../styles/icons/lang.png';
+---
+
+<div class="language-picker">
+	<label class="sr-only" for="site-language" data-i18n="language.label">Language</label>
+	<img class="language-icon" src={langIcon.src} width="64" height="64" alt="" />
+	<select id="site-language" aria-label="Language" data-language-select>
+		<option value="en">EN</option>
+		<option value="zh">中文</option>
+		<option value="ja">日本語</option>
+	</select>
+</div>
+
+<script>
+	import * as m from '../paraglide/messages.js';
+	import { getLocale, setLocale } from '../paraglide/runtime.js';
+
+	const messageByKey = {
+		'language.label': m.language_label,
+		'font.pixel': m.font_pixel,
+		'nav.home': m.nav_home,
+		'nav.blog': m.nav_blog,
+		'nav.about': m.nav_about,
+		'nav.rss': m.nav_rss,
+		'home.eyebrow': m.home_eyebrow,
+		'home.title': m.home_title,
+		'home.intro': m.home_intro,
+		'home.read': m.home_read,
+		'newsletter.eyebrow': m.newsletter_eyebrow,
+		'newsletter.title': m.newsletter_title,
+		'newsletter.body': m.newsletter_body,
+		'newsletter.placeholder': m.newsletter_placeholder,
+		'newsletter.button': m.newsletter_button,
+		'newsletter.sending': m.newsletter_sending,
+		'newsletter.success': m.newsletter_success,
+		'newsletter.exists': m.newsletter_exists,
+		'newsletter.invalid': m.newsletter_invalid,
+		'newsletter.error': m.newsletter_error,
+		'about.title': m.about_title,
+		'about.one': m.about_one,
+		'about.two': m.about_two,
+		'blog.title': m.blog_title,
+		'blog.intro': m.blog_intro,
+		'post.updated': m.post_updated,
+		'footer.rights': m.footer_rights,
+		'footer.x': m.footer_x,
+		'footer.github': m.footer_github,
+	} as const;
+
+	type Locale = 'en' | 'zh' | 'ja';
+	type MessageKey = keyof typeof messageByKey;
+
+	function renderLanguage(locale: Locale) {
+		document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale;
+		document.querySelectorAll('[data-i18n]').forEach((element) => {
+			const translatedElement = element as unknown as HTMLElement;
+			const message = messageByKey[translatedElement.dataset.i18n as MessageKey];
+			if (message) translatedElement.textContent = message();
+		});
+		document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+			const translatedElement = element as unknown as HTMLElement;
+			const message = messageByKey[translatedElement.dataset.i18nAriaLabel as MessageKey];
+			if (message) {
+				const text = message();
+				translatedElement.setAttribute('aria-label', text);
+				translatedElement.setAttribute('title', text);
+			}
+		});
+		document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+			const input = element as unknown as HTMLInputElement;
+			const message = messageByKey[input.dataset.i18nPlaceholder as MessageKey];
+			if (message) input.placeholder = message();
+		});
+		document.querySelectorAll('[data-language-select]').forEach((element) => {
+			const select = element as unknown as HTMLSelectElement;
+			select.value = locale;
+		});
+		delete document.documentElement.dataset.i18nPending;
+		document.dispatchEvent(new CustomEvent('site:language-change', { detail: { locale } }));
+	}
+
+	renderLanguage(getLocale() as Locale);
+	document.querySelectorAll('[data-language-select]').forEach((element) => {
+		const select = element as unknown as HTMLSelectElement;
+		select.addEventListener('change', async () => {
+			const locale = select.value as Locale;
+			await setLocale(locale, { reload: false });
+			renderLanguage(locale);
+		});
+	});
+	document.addEventListener('site:refresh-language', () => renderLanguage(getLocale() as Locale));
+</script>
+
+<style>
+	.language-picker {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		height: 100%;
+		color: rgb(var(--gray-dark));
+		font-size: 0.8rem;
+	}
+	.language-icon {
+		display: block;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 0;
+		image-rendering: crisp-edges;
+		image-rendering: pixelated;
+	}
+	select {
+		width: 5.4rem;
+		min-height: 3rem;
+		box-sizing: border-box;
+		padding: 0 1.25rem 0 0.25rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-input);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+		background: transparent;
+		color: rgb(var(--black));
+		font: inherit;
+		cursor: pointer;
+	}
+	select:focus-visible {
+		outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
+		outline-offset: 2px;
+	}
+	@media (max-width: 720px) {
+		.language-picker span { display: none; }
+		select { width: 4.9rem; }
+	}
+</style>
