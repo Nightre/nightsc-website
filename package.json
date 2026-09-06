@@ -28,6 +28,7 @@
 		"node": ">=22"
 	},
 	"private": true,
+	"packageManager": "yarn@1.22.22",
 	"scripts": {
 		"astro": "astro",
 		"build": "astro build",
