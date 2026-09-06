@@ -10,7 +10,7 @@ import checkboxOn from '../styles/checkbox-on.png';
 	<span data-i18n="font.pixel">Pixel font</span>
 </label>
 
-<script>
+<script lang="ts">
 	const pixelFontStorageKey = 'PIXEL_FONT_ENABLED';
 
 	function applyPixelFontPreference(enabled: boolean) {
@@ -21,14 +21,21 @@ import checkboxOn from '../styles/checkbox-on.png';
 		});
 	}
 
-	applyPixelFontPreference(localStorage.getItem(pixelFontStorageKey) !== 'false');
-	document.querySelectorAll('[data-pixel-font-toggle]').forEach((element) => {
-		const checkbox = element as unknown as HTMLInputElement;
-		checkbox.addEventListener('change', () => {
-			localStorage.setItem(pixelFontStorageKey, String(checkbox.checked));
-			applyPixelFontPreference(checkbox.checked);
+	function initializePixelFontToggle() {
+		applyPixelFontPreference(localStorage.getItem(pixelFontStorageKey) !== 'false');
+		document.querySelectorAll('[data-pixel-font-toggle]').forEach((element) => {
+			const checkbox = element as unknown as HTMLInputElement;
+			if (checkbox.dataset.pixelFontReady === 'true') return;
+			checkbox.dataset.pixelFontReady = 'true';
+			checkbox.addEventListener('change', () => {
+				localStorage.setItem(pixelFontStorageKey, String(checkbox.checked));
+				applyPixelFontPreference(checkbox.checked);
+			});
 		});
-	});
+	}
+
+	initializePixelFontToggle();
+	document.addEventListener('astro:page-load', initializePixelFontToggle);
 </script>
 
 <style>

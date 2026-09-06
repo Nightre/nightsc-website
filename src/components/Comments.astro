@@ -1,0 +1,365 @@
+---
+interface Props {
+	postId: string;
+}
+
+import avatar from "../styles/avatar.png";
+
+const { postId } = Astro.props;
+---
+
+<section
+	class="comments"
+	data-comments-root
+	data-post-id={postId}
+	data-avatar-src={avatar.src}
+	aria-labelledby="comments-title"
+>
+	<h2 id="comments-title" data-i18n="comments.title">Comments</h2>
+	<form class="comment-form" data-comment-form>
+		<label>
+			<span data-i18n="comments.name">Name</span>
+			<input
+				name="name"
+				type="text"
+				maxlength="40"
+				autocomplete="name"
+				placeholder="Your name"
+				data-i18n-placeholder="comments.namePlaceholder"
+				required
+			/>
+		</label>
+		<label>
+			<span data-i18n="comments.content">Comment</span>
+			<textarea
+				name="content"
+				rows="5"
+				maxlength="2000"
+				placeholder="Write a comment…"
+				data-i18n-placeholder="comments.contentPlaceholder"
+				required></textarea>
+		</label>
+		<label class="comment-website" aria-hidden="true">
+			Website
+			<input
+				name="website"
+				type="text"
+				tabindex="-1"
+				autocomplete="off"
+			/>
+		</label>
+		<div class="comment-form-footer">
+			<p
+				class="comment-status"
+				data-comment-status
+				role="status"
+				aria-live="polite"
+			>
+			</p>
+			<button type="submit" data-i18n="comments.submit"
+				>Post comment</button
+			>
+		</div>
+	</form>
+	<div class="comment-list" data-comment-list aria-live="polite">
+		<p data-i18n="comments.loading">Loading comments…</p>
+	</div>
+</section>
+
+<script lang="ts">
+	type CommentItem = {
+		id: string;
+		name: string;
+		content: string;
+		createdAt: string;
+	};
+
+	function formatCommentDates() {
+		const locale = document.documentElement.lang || "en";
+		const formatter = new Intl.RelativeTimeFormat(locale, {
+			numeric: "always",
+		});
+		const brackets =
+			locale.startsWith("zh") || locale === "ja"
+				? ["（", "）"]
+				: ["(", ")"];
+		document
+			.querySelectorAll<HTMLTimeElement>("[data-comment-time]")
+			.forEach((time) => {
+				if (!time.dateTime) return;
+				const diff = new Date(time.dateTime).getTime() - Date.now();
+				const absoluteSeconds = Math.abs(diff) / 1000;
+				const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+					["year", 31536000],
+					["month", 2592000],
+					["day", 86400],
+					["hour", 3600],
+					["minute", 60],
+					["second", 1],
+				];
+				const [unit, size] = units.find(
+					([, seconds]) => absoluteSeconds >= seconds,
+				) ?? ["second", 1];
+				time.textContent = `${brackets[0]}${formatter.format(Math.round(diff / 1000 / size), unit)}${brackets[1]}`;
+			});
+	}
+
+	function requestTranslationRefresh() {
+		document.dispatchEvent(new CustomEvent("site:refresh-language"));
+	}
+
+	function renderComments(root: HTMLElement, comments: CommentItem[]) {
+		const container = root.querySelector<HTMLElement>(
+			"[data-comment-list]",
+		);
+		if (!container) return;
+		container.replaceChildren();
+		if (!comments.length) {
+			const empty = document.createElement("p");
+			empty.dataset.i18n = "comments.empty";
+			container.append(empty);
+			requestTranslationRefresh();
+			return;
+		}
+
+		for (const comment of comments) {
+			const article = document.createElement("article");
+			article.className = "comment-item";
+			const header = document.createElement("header");
+			const avatar = document.createElement("img");
+			avatar.className = "comment-avatar";
+			avatar.src = root.dataset.avatarSrc ?? "";
+			avatar.alt = "";
+			const author = document.createElement("strong");
+			author.textContent = comment.name;
+			const time = document.createElement("time");
+			time.dateTime = comment.createdAt;
+			time.dataset.commentTime = "";
+			const content = document.createElement("p");
+			content.textContent = comment.content;
+			header.append(author, time);
+			const body = document.createElement("div");
+			body.className = "comment-body";
+			body.append(header, content);
+			article.append(avatar, body);
+			container.append(article);
+		}
+		formatCommentDates();
+	}
+
+	async function loadComments(root: HTMLElement) {
+		const list = root.querySelector<HTMLElement>("[data-comment-list]");
+		if (!list) return;
+		try {
+			const response = await fetch(
+				`/api/comments?postId=${encodeURIComponent(root.dataset.postId ?? "")}`,
+			);
+			if (!response.ok) throw new Error("Could not load comments");
+			const result = (await response.json()) as {
+				comments?: CommentItem[];
+			};
+			renderComments(root, result.comments ?? []);
+		} catch {
+			list.replaceChildren();
+			const error = document.createElement("p");
+			error.dataset.i18n = "comments.error";
+			list.append(error);
+			requestTranslationRefresh();
+		}
+	}
+
+	function initializeComments() {
+		document
+			.querySelectorAll<HTMLElement>("[data-comments-root]")
+			.forEach((root) => {
+				if (root.dataset.commentsReady === "true") return;
+				root.dataset.commentsReady = "true";
+				const form = root.querySelector<HTMLFormElement>(
+					"[data-comment-form]",
+				);
+				const status = root.querySelector<HTMLElement>(
+					"[data-comment-status]",
+				);
+				const button = form?.querySelector<HTMLButtonElement>(
+					'button[type="submit"]',
+				);
+				if (!form || !status || !button) return;
+
+				form.addEventListener("submit", async (event) => {
+					event.preventDefault();
+					if (!form.reportValidity()) return;
+					button.disabled = true;
+					button.dataset.i18n = "comments.submitting";
+					status.textContent = "";
+					requestTranslationRefresh();
+					const data = new FormData(form);
+					try {
+						const response = await fetch("/api/comments", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								postId: root.dataset.postId,
+								name: data.get("name")?.toString() ?? "",
+								content: data.get("content")?.toString() ?? "",
+								website: data.get("website")?.toString() ?? "",
+							}),
+						});
+						if (!response.ok)
+							throw new Error("Could not post comment");
+						form.reset();
+						status.dataset.i18n = "comments.success";
+						await loadComments(root);
+					} catch {
+						status.dataset.i18n = "comments.error";
+					} finally {
+						button.disabled = false;
+						button.dataset.i18n = "comments.submit";
+						requestTranslationRefresh();
+					}
+				});
+				void loadComments(root);
+			});
+	}
+
+	initializeComments();
+	document.addEventListener("astro:page-load", initializeComments);
+	document.addEventListener("site:language-change", formatCommentDates);
+</script>
+
+<style>
+	.comments {
+		width: 100%;
+		max-width: none;
+		box-sizing: border-box;
+		margin: 2rem auto 0;
+		padding: 2em;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-card);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+	}
+	.comments h2 {
+		margin-bottom: 1rem;
+	}
+	.comment-form {
+		display: grid;
+		gap: 1rem;
+	}
+	.comment-form label {
+		display: grid;
+		gap: 0.35rem;
+		font-weight: 700;
+	}
+	.comment-form input,
+	.comment-form textarea {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 0.65rem 0.75rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-input);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		background: transparent;
+		color: rgb(var(--gray-dark));
+		font: inherit;
+		font-weight: 400;
+		image-rendering: pixelated;
+	}
+	.comment-form textarea {
+		min-height: 8rem;
+		resize: vertical;
+	}
+	.comment-form-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.comment-status {
+		min-height: 1.5rem;
+		margin: 0;
+		color: rgb(var(--gray));
+		font-size: 0.85rem;
+	}
+	.comment-form button {
+		min-height: 3.25rem;
+		padding: 0 1rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-button-primary);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		background: transparent;
+		color: rgb(var(--black));
+		font: inherit;
+		font-weight: 700;
+		cursor: pointer;
+		image-rendering: pixelated;
+	}
+	.comment-form button:disabled {
+		opacity: 0.65;
+		cursor: wait;
+	}
+	.comment-website {
+		position: absolute;
+		left: -10000px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+	.comment-list {
+		display: grid;
+		gap: 0;
+		margin-top: 2rem;
+	}
+	.comment-list > p {
+		margin: 0;
+		color: rgb(var(--gray));
+	}
+	:global(.comment-item) {
+		display: grid;
+		grid-template-columns: 5rem minmax(0, 1fr);
+		gap: 0.75rem;
+		padding: 1.25rem 0;
+		border-top: 2px solid rgba(var(--gray), 0.22);
+	}
+	:global(.comment-item header) {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+	}
+	:global(.comment-avatar) {
+		width: 4.5rem;
+		height: 4.5rem;
+		flex: none;
+		image-rendering: pixelated;
+	}
+	:global(.comment-item time) {
+		margin-left: auto;
+		color: rgb(var(--gray));
+		font-size: 1rem;
+		white-space: nowrap;
+	}
+	:global(.comment-item p) {
+		margin: 0.5rem 0 0;
+		white-space: pre-wrap;
+	}
+	@media (max-width: 720px) {
+		.comments {
+			padding: 1.4rem;
+		}
+		.comment-form-footer {
+			align-items: stretch;
+			flex-direction: column;
+		}
+		.comment-form button {
+			width: 100%;
+		}
+		:global(.comment-item header) {
+			align-items: center;
+		}
+	}
+</style>

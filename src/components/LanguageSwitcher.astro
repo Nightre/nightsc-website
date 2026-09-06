@@ -12,7 +12,7 @@ import langIcon from '../styles/icons/lang.png';
 	</select>
 </div>
 
-<script>
+<script lang="ts">
 	import * as m from '../paraglide/messages.js';
 	import { getLocale, setLocale } from '../paraglide/runtime.js';
 
@@ -21,12 +21,18 @@ import langIcon from '../styles/icons/lang.png';
 		'font.pixel': m.font_pixel,
 		'nav.home': m.nav_home,
 		'nav.blog': m.nav_blog,
-		'nav.about': m.nav_about,
+		'nav.gallery': m.nav_gallery,
+		'nav.contact': m.nav_contact,
 		'nav.rss': m.nav_rss,
 		'home.eyebrow': m.home_eyebrow,
 		'home.title': m.home_title,
 		'home.intro': m.home_intro,
-		'home.read': m.home_read,
+		'home.recent': m.home_recent,
+		'home.projects': m.home_projects,
+		'project.rapid.description': m.project_rapid_description,
+		'project.loopring.description': m.project_loopring_description,
+		'project.polyrig.description': m.project_polyrig_description,
+		'project.axopl.description': m.project_axopl_description,
 		'newsletter.eyebrow': m.newsletter_eyebrow,
 		'newsletter.title': m.newsletter_title,
 		'newsletter.body': m.newsletter_body,
@@ -37,12 +43,23 @@ import langIcon from '../styles/icons/lang.png';
 		'newsletter.exists': m.newsletter_exists,
 		'newsletter.invalid': m.newsletter_invalid,
 		'newsletter.error': m.newsletter_error,
-		'about.title': m.about_title,
-		'about.one': m.about_one,
-		'about.two': m.about_two,
 		'blog.title': m.blog_title,
 		'blog.intro': m.blog_intro,
 		'post.updated': m.post_updated,
+		'comments.title': m.comments_title,
+		'comments.name': m.comments_name,
+		'comments.namePlaceholder': m.comments_name_placeholder,
+		'comments.content': m.comments_content,
+		'comments.contentPlaceholder': m.comments_content_placeholder,
+		'comments.submit': m.comments_submit,
+		'comments.submitting': m.comments_submitting,
+		'comments.loading': m.comments_loading,
+		'comments.empty': m.comments_empty,
+		'comments.success': m.comments_success,
+		'comments.error': m.comments_error,
+		'gallery.title': m.gallery_title,
+		'gallery.intro': m.gallery_intro,
+		'contact.title': m.contact_title,
 		'footer.rights': m.footer_rights,
 		'footer.x': m.footer_x,
 		'footer.github': m.footer_github,
@@ -80,15 +97,22 @@ import langIcon from '../styles/icons/lang.png';
 		document.dispatchEvent(new CustomEvent('site:language-change', { detail: { locale } }));
 	}
 
-	renderLanguage(getLocale() as Locale);
-	document.querySelectorAll('[data-language-select]').forEach((element) => {
-		const select = element as unknown as HTMLSelectElement;
-		select.addEventListener('change', async () => {
-			const locale = select.value as Locale;
-			await setLocale(locale, { reload: false });
-			renderLanguage(locale);
+	function initializeLanguageSwitcher() {
+		renderLanguage(getLocale() as Locale);
+		document.querySelectorAll('[data-language-select]').forEach((element) => {
+			const select = element as unknown as HTMLSelectElement;
+			if (select.dataset.languageReady === 'true') return;
+			select.dataset.languageReady = 'true';
+			select.addEventListener('change', async () => {
+				const locale = select.value as Locale;
+				await setLocale(locale, { reload: false });
+				renderLanguage(locale);
+			});
 		});
-	});
+	}
+
+	initializeLanguageSwitcher();
+	document.addEventListener('astro:page-load', initializeLanguageSwitcher);
 	document.addEventListener('site:refresh-language', () => renderLanguage(getLocale() as Locale));
 </script>
 

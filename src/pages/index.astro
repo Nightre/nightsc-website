@@ -1,54 +1,123 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import NewsletterSignup from '../components/NewsletterSignup.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import NewsletterSignup from "../components/NewsletterSignup.astro";
+import Comments from "../components/Comments.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import { getCollection } from "astro:content";
+import * as m from "../paraglide/messages.js";
+
+const recentPosts = (await getCollection("blog"))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 5);
+
+const projects = [
+	{
+		name: "Rapid.js",
+		descriptionKey: "project.rapid.description",
+		description: m.project_rapid_description(),
+		href: "https://nightre.github.io/Rapid.js/",
+		cover: "https://raw.githubusercontent.com/Nightre/Rapid.js/refs/heads/main/docs/image/logo.png",
+	},
+	{
+		name: "LoopRing",
+		descriptionKey: "project.loopring.description",
+		description: m.project_loopring_description(),
+		href: "https://nightsnever.itch.io/loop",
+		cover: "https://img.itch.zone/aW1nLzIyNTgwMTc2LnBuZw==/315x250%23c/AaEDAG.png",
+	},
+	{
+		name: "Polyrig",
+		descriptionKey: "project.polyrig.description",
+		description: m.project_polyrig_description(),
+		href: "https://nightscratch1.itch.io/polyrig",
+		cover: "https://img.itch.zone/aW1hZ2UvNDI4NjU0MS8yNTU2MTY1Ni5wbmc=/347x500/MQBmdK.png",
+	},
+	{
+		name: "Axopl",
+		descriptionKey: "project.axopl.description",
+		description: m.project_axopl_description(),
+		href: "https://axopl.com/",
+		cover: "https://axopl.com/assets/logo-by-bob-Dc3AxB_x.svg",
+	},
+];
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" transition:animate="none">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main class="home">
-			<p class="eyebrow" data-i18n="home.eyebrow">Personal notes</p>
-			<h1 data-i18n="home.title">Hello, I’m NightScratch.</h1>
-			<p class="intro" data-i18n="home.intro">
-				A small corner for code, ideas, and things worth remembering.
-			</p>
-			<a class="read-link" href="/blog" data-i18n="home.read">Browse the latest writing</a>
-			<hr class="home-divider" />
+			<div class="home-grid">
+				<div class="home-column">
+					<section class="intro-card">
+						<h4 data-i18n="home.title">Hello, I’m NightScratch.</h4>
+						<p class="intro" data-i18n="home.intro">
+							A small corner for code, ideas, and things worth
+							remembering.
+						</p>
+					</section>
+					<section
+						class="recent-posts"
+						aria-labelledby="recent-posts-title"
+					>
+						<h2 id="recent-posts-title" data-i18n="home.recent">
+							Recent articles
+						</h2>
+						<ul>
+							{
+								recentPosts.map((post) => (
+									<li>
+										<a href={`/blog/${post.id}/`}>
+											{post.data.title}
+										</a>
+									</li>
+								))
+							}
+						</ul>
+					</section>
+				</div>
+				<section class="projects-card" aria-labelledby="projects-title">
+					<h2 id="projects-title" data-i18n="home.projects">
+						Projects
+					</h2>
+					<ul>
+						{
+							projects.map((project) => (
+								<li>
+									<a
+										class="project-link"
+										href={project.href}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<img
+											class="project-cover"
+											src={project.cover}
+											width="64"
+											height="64"
+											alt=""
+										/>
+										<span class="project-copy">
+											<strong>{project.name}</strong>
+											<span class="project-description" data-i18n={project.descriptionKey}>
+												{project.description}
+											</span>
+										</span>
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</section>
+			</div>
 			<NewsletterSignup />
+			<Comments postId="home" />
 		</main>
 		<Footer />
 	</body>
 </html>
-
-<style>
-	.home {
-		width: 960px;
-		padding-block: 5rem;
-	}
-	.eyebrow {
-		margin: 0 0 0.6rem;
-		color: var(--accent);
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-	}
-	.intro {
-		max-width: 34rem;
-		font-size: 1.2rem;
-	}
-	.read-link {
-		display: inline-flex;
-		margin-top: 1rem;
-		font-weight: 700;
-	}
-	.home-divider {
-		margin: 4rem 0 0;
-	}
-</style>

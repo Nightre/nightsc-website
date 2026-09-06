@@ -1,0 +1,51 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_DESCRIPTION } from '../consts';
+---
+
+<!doctype html>
+<html lang="en" transition:animate="none">
+	<head><BaseHead title="Contact | NightScratch" description={SITE_DESCRIPTION} /></head>
+	<body>
+		<Header />
+		<main class="contact-page">
+			<section class="contact-card">
+				<h1 data-i18n="contact.title">Contact me</h1>
+				<ul>
+					<li><span>Email</span><a>nightscratch1145@gmail.com</a></li>
+					<li><span>QQ</span><a>1705755479</a></li>
+					<li><span>Discord</span><a>nights0522</a></li>
+
+					<li><span>GitHub</span><a href="https://github.com/Nightre" target="_blank" rel="noopener noreferrer">github.com/Nightre</a></li>
+					<li><span>Telegram</span><a href="t.me/nightscratch2">@nightscratch2</a></li>
+					<li><span>微信</span><a>ogel2008</a></li>
+					<li><span>X</span><a href="https://x.com/nightscratchSB" target="_blank" rel="noopener noreferrer">@nightscratchSB</a></li>
+					<li><span>RSS</span><a href="/rss.xml">Subscribe via RSS</a></li>
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.contact-page { width: 720px; padding-block: 2rem 5rem; }
+	.contact-card {
+		padding: 2.25rem;
+		border: 8px solid transparent;
+		border-image-source: var(--frame-card);
+		border-image-slice: 16 fill;
+		border-image-width: 16px;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+	}
+	.contact-card h1 { margin-bottom: 1.5rem; }
+	.contact-card ul { margin: 0; padding: 0; list-style: none; }
+	.contact-card li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.8rem 0; border-top: 2px solid rgba(var(--gray), 0.22); }
+	.contact-card li:first-child { border-top: 0; }
+	.contact-card li span { font-weight: 700; }
+	.contact-card a { text-align: right; }
+	@media (max-width: 720px) { .contact-page { padding-block: 1rem 3rem; } .contact-card { padding: 1.4rem; } .contact-card li { align-items: flex-start; flex-direction: column; gap: 0.2rem; } .contact-card a { text-align: left; } }
+</style>

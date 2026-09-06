@@ -37,16 +37,18 @@ import emailIcon from '../styles/icons/email.png';
 	</form>
 </section>
 
-<script>
-	const form = document.querySelector('[data-newsletter-form]') as unknown as HTMLFormElement | null;
-
-	form?.addEventListener('submit', async (event) => {
+<script lang="ts">
+	function initializeNewsletterForm() {
+		const form = document.querySelector<HTMLFormElement>('[data-newsletter-form]');
+		if (!form || form.dataset.newsletterReady === 'true') return;
+		form.dataset.newsletterReady = 'true';
+		form.addEventListener('submit', async (event) => {
 		event.preventDefault();
-		const emailInput = form.elements.namedItem('email') as HTMLInputElement;
-		const websiteInput = form.elements.namedItem('website') as HTMLInputElement;
-		const button = form.querySelector('button[type="submit"]') as unknown as HTMLButtonElement | null;
-		const status = form.querySelector('[data-newsletter-status]') as unknown as HTMLElement | null;
-		if (!button || !status) return;
+		const emailInput = form.elements.namedItem('email');
+		const websiteInput = form.elements.namedItem('website');
+		const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+		const status = form.querySelector<HTMLElement>('[data-newsletter-status]');
+		if (!(emailInput instanceof HTMLInputElement) || !(websiteInput instanceof HTMLInputElement) || !button || !status) return;
 
 		if (!emailInput.validity.valid) {
 			status.dataset.i18n = 'newsletter.invalid';
@@ -80,7 +82,11 @@ import emailIcon from '../styles/icons/email.png';
 			button.dataset.i18n = 'newsletter.button';
 			document.dispatchEvent(new CustomEvent('site:refresh-language'));
 		}
-	});
+		});
+	}
+
+	initializeNewsletterForm();
+	document.addEventListener('astro:page-load', initializeNewsletterForm);
 </script>
 
 <style>

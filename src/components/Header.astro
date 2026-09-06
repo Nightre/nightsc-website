@@ -5,7 +5,8 @@ import PixelFontToggle from './PixelFontToggle.astro';
 import { SITE_TITLE } from '../consts';
 import homeIcon from '../styles/icons/home.png';
 import blogIcon from '../styles/icons/blog.png';
-import aboutIcon from '../styles/icons/about.png';
+import galleryIcon from '../styles/icons/hualang.png';
+import contactIcon from '../styles/icons/lianxi.png';
 import rssIcon from '../styles/icons/rss.png';
 ---
 
@@ -22,9 +23,13 @@ import rssIcon from '../styles/icons/rss.png';
 				<img class="nav-icon" src={blogIcon.src} width="64" height="64" alt="" />
 				<span data-i18n="nav.blog">Blog</span>
 			</HeaderLink>
-			<HeaderLink href="/about">
-				<img class="nav-icon" src={aboutIcon.src} width="64" height="64" alt="" />
-				<span data-i18n="nav.about">About</span>
+			<HeaderLink href="/gallery">
+				<img class="nav-icon" src={galleryIcon.src} width="64" height="64" alt="" />
+				<span data-i18n="nav.gallery">Gallery</span>
+			</HeaderLink>
+			<HeaderLink href="/contact">
+				<img class="nav-icon" src={contactIcon.src} width="64" height="64" alt="" />
+				<span data-i18n="nav.contact">Contact</span>
 			</HeaderLink>
 			<a
 				class="rss-link"

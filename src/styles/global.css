@@ -197,3 +197,118 @@ hr {
 	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
 	white-space: nowrap;
 }
+
+/* Home page layout lives globally so it stays consistent across direct loads and client navigation. */
+.home {
+	width: 1120px;
+	padding-block: 2rem 5rem;
+}
+.home-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.85fr);
+	gap: 2rem;
+	align-items: stretch;
+}
+.home-column {
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+}
+.intro-card,
+.recent-posts,
+.projects-card {
+	box-sizing: border-box;
+	padding: 2.25rem;
+	border: 8px solid transparent;
+	border-image-source: var(--frame-card);
+	border-image-slice: 16 fill;
+	border-image-width: 16px;
+	border-image-repeat: repeat;
+	image-rendering: pixelated;
+}
+.eyebrow {
+	margin: 0 0 0.6rem;
+	color: var(--accent);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+.intro {
+	max-width: 34rem;
+	margin-bottom: 0;
+	font-size: 1.2rem;
+}
+.recent-posts h2,
+.projects-card h2 {
+	margin-bottom: 1rem;
+}
+.recent-posts ul,
+.projects-card ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.recent-posts li + li,
+.projects-card li + li {
+	border-top: 2px solid rgba(var(--gray), 0.22);
+}
+.recent-posts a {
+	display: block;
+	padding: 0.7rem 0;
+	color: rgb(var(--gray-dark));
+	font-weight: 700;
+	text-decoration: none;
+}
+.recent-posts a:hover,
+.projects-card a:hover {
+	color: var(--accent);
+}
+.project-link {
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+	min-width: 0;
+	padding: 0.75rem 0;
+	color: rgb(var(--gray-dark));
+	text-decoration: none;
+}
+.project-cover {
+	width: 3.5rem;
+	height: 3.5rem;
+	flex: none;
+	border-radius: 6px;
+	object-fit: cover;
+}
+.project-copy {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	line-height: 1.25;
+}
+.project-copy strong,
+.project-description {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.project-description {
+	margin-top: 0.25rem;
+	color: rgb(var(--gray));
+	font-size: 0.72rem;
+}
+.project-link:hover .project-description {
+	color: var(--accent);
+}
+@media (max-width: 880px) {
+	.home-grid {
+		grid-template-columns: 1fr;
+	}
+}
+@media (max-width: 720px) {
+	.intro-card,
+	.recent-posts,
+	.projects-card {
+		padding: 1.4rem;
+	}
+}

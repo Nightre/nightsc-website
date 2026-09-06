@@ -12,7 +12,7 @@ const posts = (await getCollection('blog')).sort(
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" transition:animate="none">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
@@ -24,7 +24,6 @@ const posts = (await getCollection('blog')).sort(
 			}
 			.page-heading p {
 				margin: 0;
-				color: rgb(var(--gray));
 			}
 			ul {
 				display: flex;
