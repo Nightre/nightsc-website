@@ -195,7 +195,9 @@ const { postId } = Astro.props;
 					'button[type="submit"]',
 				);
 				const nameInput = form?.querySelector<HTMLInputElement>('input[name="name"]');
-				if (!form || !status || !button || !nameInput) return;
+				const contentInput = form?.querySelector<HTMLTextAreaElement>('textarea[name="content"]');
+				const websiteInput = form?.querySelector<HTMLInputElement>('input[name="website"]');
+				if (!form || !status || !button || !nameInput || !contentInput) return;
 
 				try {
 					let savedName = localStorage.getItem(commentNameStorageKey)?.trim();
@@ -251,7 +253,8 @@ const { postId } = Astro.props;
 							}
 							throw new Error("Could not post comment");
 						}
-						form.reset();
+						contentInput.value = "";
+						if (websiteInput) websiteInput.value = "";
 						status.dataset.i18n = "comments.success";
 						await loadComments(root);
 					} catch {
