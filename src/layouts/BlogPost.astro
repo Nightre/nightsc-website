@@ -27,7 +27,6 @@ const { title, description, pubDate, updatedDate, heroImage, translationKey, pos
 				display: block;
 				margin: 0 auto;
 				border-radius: 12px;
-				box-shadow: var(--box-shadow);
 			}
 			.prose {
 				width: 100%;
@@ -59,6 +58,9 @@ const { title, description, pubDate, updatedDate, heroImage, translationKey, pos
 			.last-updated-on {
 				font-style: italic;
 			}
+			.author{
+				color:rgb(var(--gray));;
+			}
 		</style>
 	</head>
 
@@ -83,6 +85,7 @@ const { title, description, pubDate, updatedDate, heroImage, translationKey, pos
 							}
 						</div>
 						<h1 data-i18n={translationKey}>{title}</h1>
+						<p class="author">By Nightscratch</p>
 						<hr />
 					</div>
 					<slot />

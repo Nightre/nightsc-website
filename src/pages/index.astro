@@ -8,9 +8,24 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 import { getCollection } from "astro:content";
 import * as m from "../paraglide/messages.js";
 
-const recentPosts = (await getCollection("blog", ({ data }) => data.lang === "en"))
+const allPosts = await getCollection("blog");
+const titleByPostId = new Map(allPosts.map((post) => [post.id, post.data.title]));
+const recentPosts = allPosts
+	.filter(({ data }) => data.lang === "en")
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 5);
+	.slice(0, 5)
+	.map((post) => {
+		const slug = post.id.split('/').slice(1).join('/');
+		return {
+			post,
+			slug,
+			titles: {
+				en: titleByPostId.get(`en/${slug}`) ?? post.data.title,
+				zh: titleByPostId.get(`zh/${slug}`) ?? post.data.title,
+				ja: titleByPostId.get(`ja/${slug}`) ?? post.data.title,
+			},
+		};
+	});
 
 const projects = [
 	{
@@ -82,9 +97,16 @@ const projects = [
 						</h2>
 						<ul>
 							{
-								recentPosts.map((post) => (
+								recentPosts.map(({ post, slug, titles }) => (
 									<li>
-										<a href={`/en/blog/${post.id.split('/').slice(1).join('/')}/`}>
+										<a
+											href={`/en/blog/${slug}/`}
+											data-localized-post-link
+											data-post-slug={slug}
+											data-title-en={titles.en}
+											data-title-zh={titles.zh}
+											data-title-ja={titles.ja}
+										>
 											{post.data.title}
 										</a>
 									</li>

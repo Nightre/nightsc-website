@@ -104,6 +104,13 @@ import langIcon from '../styles/icons/lang.png';
 			const link = element as unknown as HTMLAnchorElement;
 			link.href = `/${locale}/blog`;
 		});
+		document.querySelectorAll('[data-localized-post-link]').forEach((element) => {
+			const link = element as unknown as HTMLAnchorElement;
+			const slug = link.dataset.postSlug;
+			const title = link.getAttribute(`data-title-${locale}`);
+			if (slug) link.href = `/${locale}/blog/${slug}/`;
+			if (title) link.textContent = title;
+		});
 		delete document.documentElement.dataset.i18nPending;
 		document.dispatchEvent(new CustomEvent('site:language-change', { detail: { locale } }));
 	}
