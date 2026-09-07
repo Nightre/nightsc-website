@@ -17,7 +17,9 @@
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "3.6.1",
 		"@inlang/paraglide-js": "2.7.1",
+		"@tweenjs/tween.js": "^25.0.0",
 		"astro": "5.16.9",
+		"rapid-render": "^1.0.15",
 		"sharp": "^0.34.5",
 		"typescript": "5.9.3"
 	},

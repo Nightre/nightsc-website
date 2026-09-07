@@ -9,23 +9,38 @@ import { getCollection } from "astro:content";
 import * as m from "../paraglide/messages.js";
 
 const allPosts = await getCollection("blog");
-const titleByPostId = new Map(allPosts.map((post) => [post.id, post.data.title]));
-const recentPosts = allPosts
-	.filter(({ data }) => data.lang === "en")
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 5)
-	.map((post) => {
-		const slug = post.id.split('/').slice(1).join('/');
+const postsBySlug = new Map<string, typeof allPosts>();
+
+for (const post of allPosts) {
+	const slug = post.id.split('/').slice(1).join('/');
+	const translations = postsBySlug.get(slug) ?? [];
+	translations.push(post);
+	postsBySlug.set(slug, translations);
+}
+
+const recentPosts = [...postsBySlug.entries()]
+	.map(([slug, translations]) => {
+		const byLanguage = new Map(translations.map((post) => [post.data.lang, post]));
+		const fallbackPost = byLanguage.get('en') ?? byLanguage.get('zh') ?? byLanguage.get('ja')!;
+		const localizedPost = (language: 'en' | 'zh' | 'ja') => byLanguage.get(language) ?? fallbackPost;
 		return {
-			post,
+			post: fallbackPost,
 			slug,
+			latestDate: Math.max(...translations.map((post) => post.data.pubDate.valueOf())),
 			titles: {
-				en: titleByPostId.get(`en/${slug}`) ?? post.data.title,
-				zh: titleByPostId.get(`zh/${slug}`) ?? post.data.title,
-				ja: titleByPostId.get(`ja/${slug}`) ?? post.data.title,
+				en: localizedPost('en').data.title,
+				zh: localizedPost('zh').data.title,
+				ja: localizedPost('ja').data.title,
+			},
+			hrefs: {
+				en: `/${localizedPost('en').data.lang}/blog/${slug}/`,
+				zh: `/${localizedPost('zh').data.lang}/blog/${slug}/`,
+				ja: `/${localizedPost('ja').data.lang}/blog/${slug}/`,
 			},
 		};
-	});
+	})
+	.sort((a, b) => b.latestDate - a.latestDate)
+	.slice(0, 5);
 
 const projects = [
 	{
@@ -97,15 +112,18 @@ const projects = [
 						</h2>
 						<ul>
 							{
-								recentPosts.map(({ post, slug, titles }) => (
+								recentPosts.map(({ post, slug, titles, hrefs }) => (
 									<li>
 										<a
-											href={`/en/blog/${slug}/`}
+											href={hrefs.en}
 											data-localized-post-link
 											data-post-slug={slug}
 											data-title-en={titles.en}
 											data-title-zh={titles.zh}
 											data-title-ja={titles.ja}
+											data-href-en={hrefs.en}
+											data-href-zh={hrefs.zh}
+											data-href-ja={hrefs.ja}
 										>
 											{post.data.title}
 										</a>

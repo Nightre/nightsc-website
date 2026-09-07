@@ -62,3 +62,18 @@ Check out [our documentation](https://docs.astro.build) or jump into our [Discor
 ## Credit
 
 This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+
+## Runnable HTML demos in posts
+
+Rename a post from `.md` to `.mdx`, then use the built-in `HtmlDemo` component. It runs the example in a sandboxed iframe and includes pause/resume and restart controls.
+
+```mdx
+<HtmlDemo
+  title="Bouncing ball"
+  height={360}
+  js="/demos/bouncing-ball.js"
+/>
+```
+
+The iframe contains a full-size `<canvas id="canvas"></canvas>` and its layout CSS by default. Put demo scripts in `public/demos/` and pass their public URL through `js`.
+Rapid Render 1.0.15 is loaded before every demo script and is available from the `RapidRender` global.

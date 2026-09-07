@@ -106,9 +106,9 @@ import langIcon from '../styles/icons/lang.png';
 		});
 		document.querySelectorAll('[data-localized-post-link]').forEach((element) => {
 			const link = element as unknown as HTMLAnchorElement;
-			const slug = link.dataset.postSlug;
 			const title = link.getAttribute(`data-title-${locale}`);
-			if (slug) link.href = `/${locale}/blog/${slug}/`;
+			const href = link.getAttribute(`data-href-${locale}`);
+			if (href) link.href = href;
 			if (title) link.textContent = title;
 		});
 		delete document.documentElement.dataset.i18nPending;
