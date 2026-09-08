@@ -6,6 +6,8 @@ heroImage: "/cover1.png"
 lang: "zh"
 ---
 
+import ClickToPlayVideo from "../../../components/ClickToPlayVideo.astro";
+
 传统的渲染引擎或游戏引擎大多都是先有用户构建的`场景树`再有`矩阵堆栈`，也就是由`持久状态`生成`执行过程`。用户只需要维护`场景树`。这很符合直觉。
 
 不过我认为渲染器不应该持有像`场景树`这样在不同帧之间持久存在的状态，因为这不在它的功能范围内。这是游戏引擎之类的工作。那如果将这个过程反过来。我们让用户使用`矩阵堆栈`来生成“场景树”。使用者则无需维护`场景树`反而维护`矩阵堆栈`。会怎么样呢？
@@ -27,7 +29,7 @@ ctx.restore();
 ctx.drawImage(hpBarImg, 10, 10);
 ```
 
-![](./1.gif)
+<ClickToPlayVideo src="/videos/martix-stack.mp4" label="播放矩阵堆栈演示视频" />
 
 这个就是手动操作矩阵堆栈，也就是手动调用`ctx.save`/`ctx.restore`的执行过程来构建场景。这很酷。但是这样会有问题出现，这些问题在场景树里都可以避免：
 
@@ -125,7 +127,7 @@ restore() {
 }
 ```
 
-![](./3.gif)
+<ClickToPlayVideo src="/videos/build-step.mp4" label="播放构建步骤演示视频" />
 
 这样我们就能设计一个遍历孙子节点的函数，并且只获取depth=2的子开销也是O(children_size)
 
@@ -168,7 +170,7 @@ const walkSubtree = (
 
 ```
 
-![](./2.gif)
+<ClickToPlayVideo src="/videos/walk-subtree.mp4" label="播放子树遍历演示视频" />
 
 有了这个，就能做一些依赖于拓扑结构的操作了。比如要更新依赖的子节点
 

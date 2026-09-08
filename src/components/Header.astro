@@ -12,151 +12,42 @@ import rssIcon from '../styles/icons/rss.png';
 const currentLocale = Astro.url.pathname.match(/^\/(en|zh|ja)(?:\/|$)/)?.[1] ?? 'en';
 ---
 
-<header class="site-header">
-	<nav aria-label="Primary navigation">
-		<a class="brand" href="/">{SITE_TITLE}</a>
+<header class="px-2 pt-2 sm:px-5 sm:pt-4">
+	<nav class="pixel-nav mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-3 px-2 pt-2 md:grid-cols-[minmax(8rem,1fr)_auto_minmax(12rem,1fr)] md:gap-x-6 md:px-4 md:pt-0" aria-label="Primary navigation">
+		<a class="justify-self-start text-lg font-bold text-ink no-underline hover:text-accent" href="/">{SITE_TITLE}</a>
 
-		<div class="nav-links">
+		<div class="col-span-2 row-start-2 flex min-h-14 items-stretch justify-between md:col-span-1 md:col-start-2 md:row-start-1 md:min-h-16">
 			<HeaderLink href="/">
-				<img class="nav-icon" src={homeIcon.src} width="64" height="64" alt="" />
-				<span data-i18n="nav.home">Home</span>
+				<img class="pixel-icon" src={homeIcon.src} width="64" height="64" alt="" />
+				<span class="hidden min-[520px]:inline" data-i18n="nav.home">Home</span>
 			</HeaderLink>
 			<HeaderLink href={`/${currentLocale}/blog`} data-localized-blog-link>
-				<img class="nav-icon" src={blogIcon.src} width="64" height="64" alt="" />
-				<span data-i18n="nav.blog">Blog</span>
+				<img class="pixel-icon" src={blogIcon.src} width="64" height="64" alt="" />
+				<span class="hidden min-[520px]:inline" data-i18n="nav.blog">Blog</span>
 			</HeaderLink>
 			<HeaderLink href="/gallery">
-				<img class="nav-icon" src={galleryIcon.src} width="64" height="64" alt="" />
-				<span data-i18n="nav.gallery">Gallery</span>
+				<img class="pixel-icon" src={galleryIcon.src} width="64" height="64" alt="" />
+				<span class="hidden min-[520px]:inline" data-i18n="nav.gallery">Gallery</span>
 			</HeaderLink>
 			<HeaderLink href="/contact">
-				<img class="nav-icon" src={contactIcon.src} width="64" height="64" alt="" />
-				<span data-i18n="nav.contact">Contact</span>
+				<img class="pixel-icon" src={contactIcon.src} width="64" height="64" alt="" />
+				<span class="hidden min-[520px]:inline" data-i18n="nav.contact">Contact</span>
 			</HeaderLink>
 			<a
-				class="rss-link"
+				class="nav-link"
 				href="/rss.xml"
 				aria-label="Subscribe via RSS"
 				title="Subscribe via RSS"
 				data-i18n-aria-label="nav.rss"
 			>
-				<img class="nav-icon" src={rssIcon.src} width="64" height="64" alt="" />
-				<span>RSS</span>
+				<img class="pixel-icon" src={rssIcon.src} width="64" height="64" alt="" />
+				<span class="hidden min-[520px]:inline">RSS</span>
 			</a>
 		</div>
 
-		<div class="nav-controls">
+		<div class="flex items-center justify-self-end gap-1 sm:gap-2">
 			<LanguageSwitcher />
 			<PixelFontToggle />
 		</div>
 	</nav>
 </header>
-
-<style>
-	.site-header {
-		margin: 0;
-		padding: 0.75rem 1.25rem;
-		background: transparent;
-	}
-	nav {
-		display: grid;
-		grid-template-columns: minmax(9rem, 1fr) auto minmax(13rem, 1fr);
-		align-items: center;
-		gap: 1.5rem;
-		width: 100%;
-		max-width: 1120px;
-		min-height: 4.5rem;
-		box-sizing: border-box;
-		margin: 0 auto;
-		padding-inline: 1rem;
-		border: 8px solid transparent;
-		border-image-source: var(--frame-nav);
-		border-image-slice: 16 fill;
-		border-image-width: 16px;
-		border-image-repeat: repeat;
-		image-rendering: pixelated;
-	}
-	.brand {
-		justify-self: start;
-		color: rgb(var(--black));
-		font-size: 1.05rem;
-		font-weight: 700;
-		text-decoration: none;
-	}
-	.nav-links {
-		display: flex;
-		align-items: stretch;
-		align-self: stretch;
-		gap: 0.25rem;
-	}
-	.nav-links :global(a) {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		height: auto;
-		box-sizing: border-box;
-		align-self: center;
-		padding: 0.2rem 0.5rem;
-		border: 8px solid transparent;
-		color: rgb(var(--gray-dark));
-		font-size: 0.95rem;
-		font-weight: 400;
-		text-decoration: none;
-		white-space: nowrap;
-		gap: 0.3rem;
-	}
-	.nav-links :global(a:hover) {
-		color: var(--accent);
-	}
-	.nav-links :global(a.active) {
-		color: rgb(var(--black));
-		font-weight: 700;
-		border-image-source: var(--frame-button-secondary);
-		border-image-slice: 16 fill;
-		border-image-width: 16px;
-		border-image-repeat: repeat;
-		image-rendering: pixelated;
-	}
-	.rss-link {
-		gap: 0.38rem;
-	}
-	.nav-icon {
-		display: block;
-		width: 1.5rem;
-		height: 1.5rem;
-		flex: none;
-		border-radius: 0;
-		image-rendering: crisp-edges;
-		image-rendering: pixelated;
-	}
-	.nav-controls {
-		justify-self: end;
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-	}
-
-	@media (max-width: 760px) {
-		.site-header {
-			padding: 0.55rem 0.65rem;
-		}
-		nav {
-			grid-template-columns: 1fr auto;
-			gap: 0 0.75rem;
-			padding: 0.5rem 0.35rem 0;
-		}
-		.nav-links {
-			grid-column: 1 / -1;
-			grid-row: 2;
-			justify-content: space-between;
-			min-height: 3.3rem;
-		}
-		.nav-links :global(a) {
-			padding-inline: 0.25rem;
-			font-size: 0.9rem;
-		}
-		.nav-controls {
-			gap: 0.25rem;
-		}
-	}
-</style>

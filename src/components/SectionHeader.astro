@@ -1,0 +1,23 @@
+---
+interface Props {
+	id: string;
+	title: string;
+	titleKey: string;
+	href: string;
+	localizedHref?: boolean;
+}
+
+const { id, title, titleKey, href, localizedHref = false } = Astro.props;
+---
+
+<header class="mb-4 flex gap-4 align-middle justify-between">
+	<h2 id={id} data-i18n={titleKey}>{title}</h2>
+	<a
+		class="text-sm font-bold"
+		href={href}
+		data-localized-blog-link={localizedHref ? '' : undefined}
+		data-i18n="home.viewMore"
+	>
+		View all
+	</a>
+</header>

@@ -1,0 +1,366 @@
+<section class="pixel-panel" data-visitor-relay aria-labelledby="visitor-relay-title">
+	<h2 id="visitor-relay-title" data-i18n="relay.title">Visitor relay</h2>
+
+	<div class="mt-4 flex gap-1 overflow-x-auto border-b border-ink/15" role="tablist" aria-label="Visitor relay">
+		<button class="relay-tab" id="relay-tab-drawing" type="button" role="tab" aria-selected="true" aria-controls="relay-panel-drawing" data-relay-tab="drawing" data-i18n="relay.drawingTab">Drawing</button>
+		<button class="relay-tab" id="relay-tab-code" type="button" role="tab" aria-selected="false" aria-controls="relay-panel-code" data-relay-tab="code" data-i18n="relay.codeTab">JavaScript</button>
+	</div>
+
+	<div class="pt-5" id="relay-panel-drawing" role="tabpanel" aria-labelledby="relay-tab-drawing" data-relay-panel="drawing">
+		<p class="mb-3 mt-0 text-sm text-muted" data-i18n="relay.drawingHint">Edit the previous visitor’s drawing, then save your changes for the next person. Left mouse: draw · Right mouse: erase</p>
+		<canvas class="block aspect-[16/9] w-full touch-none rounded-lg border border-ink/15 bg-white [cursor:crosshair]" width="800" height="450" data-drawing-canvas></canvas>
+		<div class="mt-3 flex flex-wrap items-center gap-2">
+			<label class="pixel-button cursor-pointer">
+				<span data-i18n="relay.upload">Upload image</span>
+				<input class="sr-only" type="file" accept="image/png,image/jpeg,image/webp" data-drawing-upload />
+			</label>
+			<button class="pixel-button" type="button" data-drawing-clear data-i18n="relay.clear">Clear</button>
+			<button class="pixel-button ml-auto" type="button" data-save-kind="drawing" data-i18n="relay.save">Save</button>
+		</div>
+		<p class="mb-0 mt-2 min-h-6 text-sm text-muted" data-state-status="drawing" role="status" aria-live="polite"></p>
+	</div>
+
+	<div class="pt-5" id="relay-panel-code" role="tabpanel" aria-labelledby="relay-tab-code" data-relay-panel="code" hidden>
+		<p class="mb-3 mt-0 text-sm text-muted" data-i18n="relay.codeHint">Edit the previous visitor’s code. Run it here or save it for the next person.</p>
+		<div class="relative h-72 overflow-hidden rounded-lg bg-[#111827]">
+			<pre class="pointer-events-none absolute inset-0 m-0 overflow-hidden whitespace-pre-wrap break-words p-4 font-mono text-sm leading-6 text-[#d6deeb]" data-code-highlight-shell aria-hidden="true"><code data-code-highlight></code></pre>
+			<textarea class="absolute inset-0 size-full resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-sm leading-6 text-transparent caret-white outline-none [tab-size:2] selection:bg-accent/50" aria-label="JavaScript editor" spellcheck="false" data-code-editor></textarea>
+		</div>
+		<div class="mt-3 flex flex-wrap gap-2">
+			<button class="pixel-button" type="button" data-code-run data-i18n="relay.run">Run</button>
+			<button class="pixel-button ml-auto" type="button" data-save-kind="code" data-i18n="relay.save">Save</button>
+		</div>
+		<p class="mb-1 mt-3 text-sm font-bold" data-i18n="relay.output">Output</p>
+		<pre class="m-0 min-h-16 overflow-auto rounded-lg bg-ink p-3 font-mono text-sm leading-6 text-white" data-code-output aria-live="polite"></pre>
+		<p class="mb-0 mt-2 min-h-6 text-sm text-muted" data-state-status="code" role="status" aria-live="polite"></p>
+	</div>
+</section>
+
+<script>
+	import * as m from '../paraglide/messages.js';
+
+	type SharedKind = 'drawing' | 'code';
+	type SharedState = Partial<Record<SharedKind, string>>;
+
+	const defaultCode = `const greeting = "Hello, visitor!";
+console.log(greeting);`;
+	const statusMessages = {
+		loading: m.relay_loading,
+		saving: m.relay_saving,
+		saved: m.relay_saved,
+		running: m.relay_running,
+		error: m.relay_error,
+		rateLimited: m.relay_rate_limited,
+		timeout: m.relay_timeout,
+	};
+
+	function escapeHtml(value: string) {
+		return value.replace(/[&<>]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]!);
+	}
+
+	function highlightJavaScript(source: string) {
+		const pattern = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:async|await|break|case|catch|class|const|continue|default|delete|do|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|static|switch|throw|try|typeof|var|while|yield)\b|\b(?:true|false|null|undefined)\b|\b\d+(?:\.\d+)?\b)/g;
+		let html = '';
+		let cursor = 0;
+
+		for (const match of source.matchAll(pattern)) {
+			const token = match[0];
+			const index = match.index ?? 0;
+			html += escapeHtml(source.slice(cursor, index));
+			const className = token.startsWith('//') || token.startsWith('/*')
+				? 'relay-token-comment'
+				: /^['"`]/.test(token)
+					? 'relay-token-string'
+					: /^\d/.test(token)
+						? 'relay-token-number'
+						: /^(true|false|null|undefined)$/.test(token)
+							? 'relay-token-literal'
+							: 'relay-token-keyword';
+			html += `<span class="${className}">${escapeHtml(token)}</span>`;
+			cursor = index + token.length;
+		}
+
+		return html + escapeHtml(source.slice(cursor));
+	}
+
+	function initializeVisitorRelay(root: HTMLElement) {
+		if (root.dataset.ready === 'true') return;
+		root.dataset.ready = 'true';
+
+		const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-relay-tab]')];
+		const panels = [...root.querySelectorAll<HTMLElement>('[data-relay-panel]')];
+		const canvas = root.querySelector<HTMLCanvasElement>('[data-drawing-canvas]');
+		const codeEditor = root.querySelector<HTMLTextAreaElement>('[data-code-editor]');
+		if (!canvas || !codeEditor) return;
+
+		const context = canvas.getContext('2d', { alpha: false });
+		if (!context) return;
+
+		function activateTab(name: string) {
+			tabs.forEach((tab) => {
+				const active = tab.dataset.relayTab === name;
+				tab.setAttribute('aria-selected', String(active));
+				tab.tabIndex = active ? 0 : -1;
+			});
+			panels.forEach((panel) => panel.hidden = panel.dataset.relayPanel !== name);
+		}
+
+		tabs.forEach((tab, index) => {
+			tab.addEventListener('click', () => activateTab(tab.dataset.relayTab ?? 'drawing'));
+			tab.addEventListener('keydown', (event) => {
+				if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+				event.preventDefault();
+				const direction = event.key === 'ArrowRight' ? 1 : -1;
+				const next = tabs[(index + direction + tabs.length) % tabs.length];
+				next.focus();
+				activateTab(next.dataset.relayTab ?? 'drawing');
+			});
+		});
+		activateTab('drawing');
+
+		function setStatus(selector: string, key: keyof typeof statusMessages) {
+			const status = root.querySelector<HTMLElement>(selector);
+			if (status) status.textContent = statusMessages[key]();
+		}
+
+		function clearCanvas() {
+			context.fillStyle = '#ffffff';
+			context.fillRect(0, 0, canvas.width, canvas.height);
+		}
+
+		function loadDrawing(source: string) {
+			if (!source) {
+				clearCanvas();
+				return;
+			}
+
+			const image = new Image();
+			image.onload = () => {
+				clearCanvas();
+				context.drawImage(image, 0, 0, canvas.width, canvas.height);
+			};
+			image.src = source;
+		}
+
+		const adapters: Record<SharedKind, { read: () => string; write: (value: string) => void }> = {
+			drawing: {
+				read: () => canvas.toDataURL('image/webp', 0.85),
+				write: loadDrawing,
+			},
+			code: {
+				read: () => codeEditor.value,
+				write: (value) => {
+					codeEditor.value = value || defaultCode;
+					updateHighlight();
+				},
+			},
+		};
+
+		async function saveSharedState(kind: SharedKind) {
+			const statusSelector = `[data-state-status="${kind}"]`;
+			setStatus(statusSelector, 'saving');
+
+			try {
+				const response = await fetch('/api/visitor-relay', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ kind, content: adapters[kind].read() }),
+				});
+				if (!response.ok) {
+					setStatus(statusSelector, response.status === 429 ? 'rateLimited' : 'error');
+					return;
+				}
+				setStatus(statusSelector, 'saved');
+			} catch {
+				setStatus(statusSelector, 'error');
+			}
+		}
+
+		root.querySelectorAll<HTMLButtonElement>('[data-save-kind]').forEach((button) => {
+			button.addEventListener('click', () => void saveSharedState(button.dataset.saveKind as SharedKind));
+		});
+
+		let drawing = false;
+		let erasing = false;
+		let previousPoint = { x: 0, y: 0 };
+
+		function getCanvasPoint(event: PointerEvent) {
+			const bounds = canvas.getBoundingClientRect();
+			return {
+				x: (event.clientX - bounds.left) * canvas.width / bounds.width,
+				y: (event.clientY - bounds.top) * canvas.height / bounds.height,
+			};
+		}
+
+		canvas.addEventListener('pointerdown', (event) => {
+			if (event.button !== 0 && event.button !== 2) return;
+			event.preventDefault();
+			drawing = true;
+			erasing = event.button === 2;
+			previousPoint = getCanvasPoint(event);
+			canvas.setPointerCapture(event.pointerId);
+			context.fillStyle = erasing ? '#ffffff' : '#111827';
+			context.beginPath();
+			context.arc(previousPoint.x, previousPoint.y, erasing ? 12 : 2, 0, Math.PI * 2);
+			context.fill();
+		});
+
+		canvas.addEventListener('pointermove', (event) => {
+			if (!drawing) return;
+			const point = getCanvasPoint(event);
+			context.beginPath();
+			context.moveTo(previousPoint.x, previousPoint.y);
+			context.lineTo(point.x, point.y);
+			context.strokeStyle = erasing ? '#ffffff' : '#111827';
+			context.lineWidth = erasing ? 24 : 4;
+			context.lineCap = 'round';
+			context.lineJoin = 'round';
+			context.stroke();
+			previousPoint = point;
+		});
+
+		const stopDrawing = () => drawing = false;
+		canvas.addEventListener('pointerup', stopDrawing);
+		canvas.addEventListener('pointercancel', stopDrawing);
+		canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+		root.querySelector('[data-drawing-clear]')?.addEventListener('click', clearCanvas);
+
+		root.querySelector<HTMLInputElement>('[data-drawing-upload]')?.addEventListener('change', (event) => {
+			const input = event.currentTarget as HTMLInputElement;
+			const file = input.files?.[0];
+			if (!file || !file.type.startsWith('image/')) return;
+			const url = URL.createObjectURL(file);
+			const image = new Image();
+			image.onload = () => {
+				clearCanvas();
+				const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+				const width = image.width * scale;
+				const height = image.height * scale;
+				context.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+				URL.revokeObjectURL(url);
+				input.value = '';
+			};
+			image.src = url;
+		});
+
+		const highlight = root.querySelector<HTMLElement>('[data-code-highlight]');
+		const highlightShell = root.querySelector<HTMLElement>('[data-code-highlight-shell]');
+		function updateHighlight() {
+			if (highlight) highlight.innerHTML = `${highlightJavaScript(codeEditor.value)}\n`;
+		}
+		codeEditor.addEventListener('input', updateHighlight);
+		codeEditor.addEventListener('scroll', () => {
+			if (!highlightShell) return;
+			highlightShell.scrollTop = codeEditor.scrollTop;
+			highlightShell.scrollLeft = codeEditor.scrollLeft;
+		});
+		codeEditor.addEventListener('keydown', (event) => {
+			if (event.key !== 'Tab') return;
+			event.preventDefault();
+			const start = codeEditor.selectionStart;
+			codeEditor.setRangeText('  ', start, codeEditor.selectionEnd, 'end');
+			updateHighlight();
+		});
+
+		root.querySelector('[data-code-run]')?.addEventListener('click', () => {
+			const output = root.querySelector<HTMLElement>('[data-code-output]');
+			if (!output) return;
+			output.textContent = statusMessages.running();
+
+			const workerSource = `
+				const format = (value) => {
+					if (typeof value === 'string') return value;
+					try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+				};
+				self.onmessage = async ({ data }) => {
+					const lines = [];
+					const relayConsole = {
+						log: (...values) => lines.push(values.map(format).join(' ')),
+						warn: (...values) => lines.push(values.map(format).join(' ')),
+						error: (...values) => lines.push(values.map(format).join(' ')),
+					};
+					try {
+						const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+						const result = await new AsyncFunction('console', data)(relayConsole);
+						if (result !== undefined) lines.push(format(result));
+						self.postMessage({ lines });
+					} catch (error) {
+						self.postMessage({ error: error instanceof Error ? error.message : String(error), lines });
+					}
+				};
+			`;
+			const workerUrl = URL.createObjectURL(new Blob([workerSource], { type: 'text/javascript' }));
+			const worker = new Worker(workerUrl);
+			const timeout = window.setTimeout(() => {
+				worker.terminate();
+				URL.revokeObjectURL(workerUrl);
+				output.textContent = statusMessages.timeout();
+			}, 2000);
+
+			worker.addEventListener('message', (event) => {
+				window.clearTimeout(timeout);
+				worker.terminate();
+				URL.revokeObjectURL(workerUrl);
+				const result = event.data as { lines?: string[]; error?: string };
+				output.textContent = [...(result.lines ?? []), ...(result.error ? [result.error] : [])].join('\n') || '✓';
+			});
+			worker.postMessage(codeEditor.value);
+		});
+
+		clearCanvas();
+		adapters.code.write(defaultCode);
+		setStatus('[data-state-status="drawing"]', 'loading');
+		setStatus('[data-state-status="code"]', 'loading');
+
+		void fetch('/api/visitor-relay')
+			.then(async (response) => {
+				if (!response.ok) throw new Error('Could not load state');
+				return response.json() as Promise<{ state?: SharedState }>;
+			})
+			.then(({ state = {} }) => {
+				(Object.keys(adapters) as SharedKind[]).forEach((kind) => {
+					adapters[kind].write(state[kind] ?? '');
+					const status = root.querySelector<HTMLElement>(`[data-state-status="${kind}"]`);
+					if (status) status.textContent = '';
+				});
+			})
+			.catch(() => {
+				(Object.keys(adapters) as SharedKind[]).forEach((kind) => setStatus(`[data-state-status="${kind}"]`, 'error'));
+			});
+	}
+
+	function initializeAllVisitorRelays() {
+		document.querySelectorAll<HTMLElement>('[data-visitor-relay]').forEach(initializeVisitorRelay);
+	}
+
+	initializeAllVisitorRelays();
+	document.addEventListener('astro:page-load', initializeAllVisitorRelays);
+</script>
+
+<style>
+	.relay-tab {
+		flex: none;
+		min-height: 2.75rem;
+		padding: 0.45rem 0.75rem;
+		border: 0;
+		border-bottom: 3px solid transparent;
+		background: transparent;
+		color: rgb(var(--muted));
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 700;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+
+	.relay-tab[aria-selected="true"] {
+		border-bottom-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	:global(.relay-token-comment) { color: #7f8da3; }
+	:global(.relay-token-string) { color: #a7e3a1; }
+	:global(.relay-token-number) { color: #f5bd78; }
+	:global(.relay-token-literal) { color: #f4a2c5; }
+	:global(.relay-token-keyword) { color: #8bc8ff; }
+</style>

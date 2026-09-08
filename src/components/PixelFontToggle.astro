@@ -3,11 +3,11 @@ import checkboxOff from '../styles/checkbox-off.png';
 import checkboxOn from '../styles/checkbox-on.png';
 ---
 
-<label class="pixel-font-toggle">
-	<input type="checkbox" data-pixel-font-toggle checked />
-	<img class="checkbox-icon checkbox-off" src={checkboxOff.src} width="64" height="64" alt="" />
-	<img class="checkbox-icon checkbox-on" src={checkboxOn.src} width="64" height="64" alt="" />
-	<span data-i18n="font.pixel">Pixel font</span>
+<label class="inline-flex cursor-pointer select-none items-center gap-1 text-sm text-ink">
+	<input class="peer sr-only" type="checkbox" data-pixel-font-toggle checked />
+	<img class="pixel-icon peer-checked:hidden" src={checkboxOff.src} width="64" height="64" alt="" />
+	<img class="pixel-icon hidden peer-checked:block" src={checkboxOn.src} width="64" height="64" alt="" />
+	<span class="hidden min-[760px]:inline" data-i18n="font.pixel">Pixel font</span>
 </label>
 
 <script>
@@ -37,47 +37,3 @@ import checkboxOn from '../styles/checkbox-on.png';
 	initializePixelFontToggle();
 	document.addEventListener('astro:page-load', initializePixelFontToggle);
 </script>
-
-<style>
-	.pixel-font-toggle {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		color: rgb(var(--gray-dark));
-		font-size: 0.8rem;
-		white-space: nowrap;
-		cursor: pointer;
-		user-select: none;
-	}
-	input {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		opacity: 0;
-		pointer-events: none;
-	}
-	.checkbox-icon {
-		display: block;
-		width: 1.5rem;
-		height: 1.5rem;
-		border-radius: 0;
-		image-rendering: crisp-edges;
-		image-rendering: pixelated;
-	}
-	.checkbox-on,
-	input:checked ~ .checkbox-off {
-		display: none;
-	}
-	input:checked ~ .checkbox-on {
-		display: block;
-	}
-	input:focus-visible ~ .checkbox-icon {
-		outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
-		outline-offset: 2px;
-	}
-	@media (max-width: 760px) {
-		.pixel-font-toggle span {
-			display: none;
-		}
-	}
-</style>

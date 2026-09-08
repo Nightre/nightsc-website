@@ -2,10 +2,10 @@
 import langIcon from '../styles/icons/lang.png';
 ---
 
-<div class="language-picker">
+<div class="flex h-full items-center gap-1 text-sm text-ink">
 	<label class="sr-only" for="site-language" data-i18n="language.label">Language</label>
-	<img class="language-icon" src={langIcon.src} width="64" height="64" alt="" />
-	<select id="site-language" aria-label="Language" data-language-select>
+	<img class="pixel-icon hidden min-[430px]:block" src={langIcon.src} width="64" height="64" alt="" />
+	<select class="pixel-input h-12 w-[5.5rem] cursor-pointer py-0 pr-5 sm:w-[6.5rem]" id="site-language" aria-label="Language" data-language-select>
 		<option value="en">EN</option>
 		<option value="zh">中文</option>
 		<option value="ja">日本語</option>
@@ -29,6 +29,18 @@ import langIcon from '../styles/icons/lang.png';
 		'home.intro': m.home_intro,
 		'home.recent': m.home_recent,
 		'home.projects': m.home_projects,
+		'home.gallery': m.home_gallery,
+		'home.viewMore': m.home_view_more,
+		'relay.title': m.relay_title,
+		'relay.drawingTab': m.relay_drawing_tab,
+		'relay.codeTab': m.relay_code_tab,
+		'relay.drawingHint': m.relay_drawing_hint,
+		'relay.upload': m.relay_upload,
+		'relay.clear': m.relay_clear,
+		'relay.codeHint': m.relay_code_hint,
+		'relay.run': m.relay_run,
+		'relay.output': m.relay_output,
+		'relay.save': m.relay_save,
 		'project.rapid.description': m.project_rapid_description,
 		'project.loopring.description': m.project_loopring_description,
 		'project.polyrig.description': m.project_polyrig_description,
@@ -109,7 +121,10 @@ import langIcon from '../styles/icons/lang.png';
 			const title = link.getAttribute(`data-title-${locale}`);
 			const href = link.getAttribute(`data-href-${locale}`);
 			if (href) link.href = href;
-			if (title) link.textContent = title;
+			if (title) {
+				const titleElement = link.querySelector<HTMLElement>('[data-localized-post-title]');
+				(titleElement ?? link).textContent = title;
+			}
 		});
 		delete document.documentElement.dataset.i18nPending;
 		document.dispatchEvent(new CustomEvent('site:language-change', { detail: { locale } }));
@@ -142,46 +157,3 @@ import langIcon from '../styles/icons/lang.png';
 	document.addEventListener('astro:page-load', () => void initializeLanguageSwitcher());
 	document.addEventListener('site:refresh-language', () => renderLanguage(getLocale() as Locale));
 </script>
-
-<style>
-	.language-picker {
-		display: flex;
-		align-items: center;
-		gap: 0.3rem;
-		height: 100%;
-		color: rgb(var(--gray-dark));
-		font-size: 0.8rem;
-	}
-	.language-icon {
-		display: block;
-		width: 1.5rem;
-		height: 1.5rem;
-		border-radius: 0;
-		image-rendering: crisp-edges;
-		image-rendering: pixelated;
-	}
-	select {
-		width: 6.5rem;
-		min-height: 3rem;
-		box-sizing: border-box;
-		padding: 0 1.25rem 0 0.25rem;
-		border: 8px solid transparent;
-		border-image-source: var(--frame-input);
-		border-image-slice: 16 fill;
-		border-image-width: 16px;
-		border-image-repeat: repeat;
-		image-rendering: pixelated;
-		background: transparent;
-		color: rgb(var(--black));
-		font: inherit;
-		cursor: pointer;
-	}
-	select:focus-visible {
-		outline: 3px solid color-mix(in srgb, var(--accent) 30%, transparent);
-		outline-offset: 2px;
-	}
-	@media (max-width: 720px) {
-		.language-picker span { display: none; }
-		select { width: 6rem; }
-	}
-</style>

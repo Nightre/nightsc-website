@@ -17,10 +17,12 @@
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "3.6.1",
 		"@inlang/paraglide-js": "2.7.1",
+		"@tailwindcss/vite": "^4.3.3",
 		"@tweenjs/tween.js": "^25.0.0",
 		"astro": "5.16.9",
 		"rapid-render": "^1.0.15",
 		"sharp": "^0.34.5",
+		"tailwindcss": "^4.3.3",
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
@@ -36,6 +38,7 @@
 		"build": "astro build",
 		"cf-typegen": "wrangler types",
 		"check": "astro build && tsc && wrangler deploy --dry-run",
+		"db:migrate": "wrangler d1 migrations apply COMMENTS_DB --remote",
 		"deploy": "wrangler deploy",
 		"dev": "astro dev",
 		"gallery:thumbnails": "node scripts/generate-gallery-thumbnails.mjs",

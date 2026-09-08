@@ -1,0 +1,26 @@
+[
+	{
+		"image": "/hua/1.png",
+		"thumbnail": "/hua/thumbs/1.webp",
+		"alt": "Artwork 1",
+		"caption": "Artwork 01"
+	},
+	{
+		"image": "/hua/2.png",
+		"thumbnail": "/hua/thumbs/2.webp",
+		"alt": "Artwork 2",
+		"caption": "Artwork 02"
+	},
+	{
+		"image": "/hua/3.png",
+		"thumbnail": "/hua/thumbs/3.webp",
+		"alt": "Artwork 3",
+		"caption": "Artwork 03"
+	},
+	{
+		"image": "/hua/4.png",
+		"thumbnail": "/hua/thumbs/4.webp",
+		"alt": "Artwork 4",
+		"caption": "Artwork 04"
+	}
+]

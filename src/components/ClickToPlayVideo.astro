@@ -1,0 +1,163 @@
+---
+interface Props {
+	src: string;
+	label?: string;
+}
+
+const { src, label = "播放视频" } = Astro.props;
+---
+
+<div class="click-to-play-video" data-click-to-play-video>
+	<video src={src} controls loop muted playsinline preload="auto"></video>
+	<div class="loading-placeholder" aria-hidden="true">
+		<span class="loading-spinner"></span>
+	</div>
+	<button type="button" class="play-button" aria-label={label}>
+		<svg viewBox="0 0 64 64" aria-hidden="true">
+			<path d="M24 17.5v29L47 32 24 17.5Z" />
+		</svg>
+	</button>
+</div>
+
+<script>
+	function initializeClickToPlayVideos() {
+		document.querySelectorAll<HTMLElement>("[data-click-to-play-video]").forEach((player) => {
+			if (player.dataset.ready === "true") return;
+
+			const video = player.querySelector("video");
+			const button = player.querySelector<HTMLButtonElement>(".play-button");
+			if (!video || !button) return;
+			player.dataset.ready = "true";
+
+			const showVideo = () => player.classList.add("is-loaded");
+			const showLoading = () => player.classList.remove("is-loaded");
+
+			button.addEventListener("click", async () => {
+				try {
+					await video.play();
+				} catch {}
+			});
+
+			video.addEventListener("loadeddata", showVideo);
+			video.addEventListener("canplay", showVideo);
+			video.addEventListener("waiting", showLoading);
+			video.addEventListener("playing", () => {
+				player.classList.add("has-started");
+				showVideo();
+			});
+
+			if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+				showVideo();
+			} else {
+				video.load();
+			}
+		});
+	}
+
+	initializeClickToPlayVideos();
+	document.addEventListener("astro:page-load", initializeClickToPlayVideos);
+</script>
+
+<style>
+	.click-to-play-video {
+		position: relative;
+		width: 100%;
+		margin: 1.5rem 0;
+		overflow: hidden;
+		border-radius: 8px;
+		background: #000;
+		line-height: 0;
+	}
+
+	.click-to-play-video video {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.loading-placeholder {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		background: #777;
+		opacity: 1;
+		pointer-events: none;
+		transition: opacity 160ms ease;
+	}
+
+	.loading-spinner {
+		width: clamp(44px, 7vw, 64px);
+		aspect-ratio: 1;
+		border: 6px solid rgba(255, 255, 255, 0.35);
+		border-top-color: white;
+		border-radius: 50%;
+		animation: video-loading-spin 800ms linear infinite;
+	}
+
+	.click-to-play-video.is-loaded .loading-placeholder {
+		opacity: 0;
+	}
+
+	.play-button {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		display: grid;
+		width: clamp(72px, 10vw, 96px);
+		aspect-ratio: 1;
+		padding: 0;
+		place-items: center;
+		transform: translate(-50%, -50%);
+		border: 0;
+		border-radius: 50%;
+		background: rgba(41, 143, 227, 0.92);
+		color: white;
+		cursor: pointer;
+		opacity: 0;
+		pointer-events: none;
+		transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+	}
+
+	.click-to-play-video.is-loaded:not(.has-started) .play-button {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.play-button:hover {
+		transform: translate(-50%, -50%) scale(1.08);
+		background: rgba(0, 140, 255, 0.92);
+	}
+
+	.play-button:focus-visible {
+		outline: 4px solid white;
+		outline-offset: 4px;
+	}
+
+	.play-button svg {
+		width: 56%;
+		fill: currentColor;
+	}
+
+	.click-to-play-video.has-started .play-button {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	@keyframes video-loading-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.play-button,
+		.loading-placeholder {
+			transition: none;
+		}
+
+		.loading-spinner {
+			animation-duration: 1.6s;
+		}
+	}
+</style>

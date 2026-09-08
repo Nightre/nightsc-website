@@ -5,53 +5,16 @@ import githubIcon from '../styles/icons/github.png';
 const today = new Date();
 ---
 
-<footer>
-	&copy; {today.getFullYear()} Nightscratch. <span data-i18n="footer.rights">All rights reserved.</span>
-	<div class="social-links">
+<footer class="pixel-footer mt-12 px-4 pb-20 pt-10 text-center text-base text-muted">
+	<p class="m-0">&copy; {today.getFullYear()} NightScratch. <span data-i18n="footer.rights">All rights reserved.</span></p>
+	<div class="mt-4 flex justify-center gap-4">
 		<a href="https://x.com/nightscratchSB" target="_blank" rel="noopener noreferrer">
 			<span class="sr-only" data-i18n="footer.x">Follow on X</span>
-			<img src={xIcon.src} width="64" height="64" alt="" />
+			<img class="pixel-icon" src={xIcon.src} width="64" height="64" alt="" />
 		</a>
 		<a href="https://github.com/Nightre" target="_blank" rel="noopener noreferrer">
 			<span class="sr-only" data-i18n="footer.github">Go to GitHub</span>
-			<img src={githubIcon.src} width="64" height="64" alt="" />
+			<img class="pixel-icon" src={githubIcon.src} width="64" height="64" alt="" />
 		</a>
 	</div>
 </footer>
-<style>
-	footer {
-		box-sizing: border-box;
-		margin: 0;
-		padding: 2em 1em 6em;
-		border: 8px solid transparent;
-		border-image-source: var(--frame-footer);
-		border-image-slice: 16 fill;
-		border-image-width: 16px;
-		border-image-repeat: repeat;
-		image-rendering: pixelated;
-		background: transparent;
-		color: rgb(var(--gray));
-		text-align: center;
-	}
-	.social-links {
-		display: flex;
-		justify-content: center;
-		gap: 1em;
-		margin-top: 1em;
-	}
-	.social-links a {
-		text-decoration: none;
-		color: rgb(var(--gray));
-	}
-	.social-links a:hover {
-		color: rgb(var(--gray-dark));
-	}
-	.social-links img {
-		display: block;
-		width: 1.5rem;
-		height: 1.5rem;
-		border-radius: 0;
-		image-rendering: crisp-edges;
-		image-rendering: pixelated;
-	}
-</style>

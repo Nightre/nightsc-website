@@ -15,19 +15,6 @@ const isActive = linkPath === '/'
 	: pathname === linkPath || pathname.startsWith(`${linkPath}/`);
 ---
 
-<a href={href} class:list={[className, { active: isActive }]} {...props}>
+<a href={href} class:list={['nav-link', className, { active: isActive }]} {...props}>
 	<slot />
 </a>
-<style>
-	a {
-		display: inline-flex;
-		align-items: center;
-		height: 100%;
-		box-sizing: border-box;
-		text-decoration: none;
-	}
-	a.active {
-		font-weight: bolder;
-		text-decoration: none;
-	}
-</style>
